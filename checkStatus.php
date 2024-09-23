@@ -3,6 +3,7 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
+// Ensure the user is logged in and is a client
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     header('Location: login.php');
     exit;
@@ -19,30 +20,11 @@ $stmtClient->execute();
 $clientInfo = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
 // Fetch client's orders
-$query = "SELECT * FROM orders WHERE client_id = :client_id";
-$stmt = $conn->getStarted()->prepare($query);
-$stmt->bindParam(':client_id', $client_id);
-$stmt->execute();
-$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Handle new order form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $fullname = $_POST['fullname'];
-    $pickup_point = $_POST['pickup_point'];
-    $destination = $_POST['destination'];
-    $delivery_date = $_POST['delivery_date'];
-
-    $insertOrderQuery = "INSERT INTO orders (client_id, fullname, pickup_point, destination, delivery_date, status) VALUES (:client_id, :fullname, :pickup_point, :destination, :delivery_date, 'pending')";
-    $stmtInsert = $conn->getStarted()->prepare($insertOrderQuery);
-    $stmtInsert->bindParam(':client_id', $client_id);
-    $stmtInsert->bindParam(':fullname', $fullname);
-    $stmtInsert->bindParam(':pickup_point', $pickup_point);
-    $stmtInsert->bindParam(':destination', $destination);
-    $stmtInsert->bindParam(':delivery_date', $delivery_date);
-    $stmtInsert->execute();
-
-    echo "<div class='alert alert-success'>New order created successfully!</div>";
-}
+$orderQuery = "SELECT * FROM orders WHERE client_id = :client_id";
+$stmtOrders = $conn->getStarted()->prepare($orderQuery);
+$stmtOrders->bindParam(':client_id', $client_id);
+$stmtOrders->execute();
+$orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -50,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Dashboard</title>
+    <title>Check Status</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -103,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!-- Page Content -->
 <div class="content">
     <div class="container mt-5">
-        <h2>Your Orders</h2>
+        <h2>Your Order Status</h2>
         <table class="table">
             <thead>
                 <tr>
@@ -112,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <th>Destination</th>
                     <th>Price</th>
                     <th>Status</th>
+                    <th>Driver ID</th>
                 </tr>
             </thead>
             <tbody>
@@ -120,8 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <td><?= $order['order_id'] ?></td>
                         <td><?= $order['pickup_point'] ?></td>
                         <td><?= $order['destination'] ?></td>
-                        <td><?= $order['price'] ?></td>
+                        <td><?= $order['price'] ?? 'Pending' ?></td>
                         <td><?= $order['status'] ?></td>
+                        <td><?= $order['driver_id'] ?? 'Not Assigned' ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
