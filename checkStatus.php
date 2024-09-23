@@ -39,10 +39,11 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
             display: flex;
             min-height: 100vh;
             flex-direction: column;
+            background-color: #f8f9fa;
         }
         #sidebar {
             height: 100%;
-            background-color: #343a40;
+            background-color: #001f3f;
             padding-top: 20px;
             width: 250px;
             position: fixed;
@@ -50,13 +51,27 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
         #sidebar .nav-link {
             color: #fff;
         }
+        #sidebar .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
         .content {
             margin-left: 260px;
             padding: 20px;
         }
         .client-info {
             color: white;
-            margin-left: 15px;
+            padding: 15px;
+        }
+        .table thead {
+            background-color: #007bff;
+            color: white;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f0f8ff;
+        }
+        .table tbody tr:hover {
+            background-color: #d3e3f3;
         }
     </style>
 </head>
@@ -77,7 +92,7 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
             <a class="nav-link" href="new_order.php">New Order</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="past_orders.php">Past Orders</a>
+            <a class="nav-link" href="past_order.php">Past Orders</a>
         </li>
     </ul>
 </nav>

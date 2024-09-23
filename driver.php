@@ -29,6 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bindParam(':order_id', $order_id);
     $stmt->execute();
 
+    // If the order status is delivered, unassign the driver (set driver_id to NULL)
+    if ($status === 'delivered') {
+        $unassignDriverQuery = "UPDATE orders SET driver_id = NULL WHERE order_id = :order_id";
+        $stmtUnassign = $conn->getStarted()->prepare($unassignDriverQuery);
+        $stmtUnassign->bindParam(':order_id', $order_id);
+        $stmtUnassign->execute();
+    }
+
     echo "<div class='alert alert-success'>Order status updated successfully!</div>";
 }
 ?>
@@ -38,6 +46,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <title>Driver Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .table thead {
+            background-color: #007bff;
+            color: white;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f0f8ff;
+        }
+        .table tbody tr:hover {
+            background-color: #d3e3f3;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">

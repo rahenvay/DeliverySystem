@@ -11,38 +11,19 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
 $conn = new Database();
 $client_id = $_SESSION['user_id'];
 
-// Fetch client's information
+// Fetch client info
 $clientQuery = "SELECT fullname FROM user WHERE id = :client_id";
 $stmtClient = $conn->getStarted()->prepare($clientQuery);
 $stmtClient->bindParam(':client_id', $client_id);
 $stmtClient->execute();
 $clientInfo = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
-// Fetch client's orders
-$query = "SELECT * FROM orders WHERE client_id = :client_id";
+// Fetch all delivered orders for this client
+$query = "SELECT * FROM orders WHERE client_id = :client_id AND status = 'delivered'";
 $stmt = $conn->getStarted()->prepare($query);
 $stmt->bindParam(':client_id', $client_id);
 $stmt->execute();
-$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Handle new order form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $fullname = $_POST['fullname'];
-    $pickup_point = $_POST['pickup_point'];
-    $destination = $_POST['destination'];
-    $delivery_date = $_POST['delivery_date'];
-
-    $insertOrderQuery = "INSERT INTO orders (client_id, fullname, pickup_point, destination, delivery_date, status) VALUES (:client_id, :fullname, :pickup_point, :destination, :delivery_date, 'pending')";
-    $stmtInsert = $conn->getStarted()->prepare($insertOrderQuery);
-    $stmtInsert->bindParam(':client_id', $client_id);
-    $stmtInsert->bindParam(':fullname', $fullname);
-    $stmtInsert->bindParam(':pickup_point', $pickup_point);
-    $stmtInsert->bindParam(':destination', $destination);
-    $stmtInsert->bindParam(':delivery_date', $delivery_date);
-    $stmtInsert->execute();
-
-    echo "<div class='alert alert-success'>New order created successfully!</div>";
-}
+$pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -50,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Dashboard</title>
+    <title>Past Orders</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -77,10 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin-left: 260px;
             padding: 20px;
         }
-        .client-info {
-            color: white;
-            margin-left: 15px;
-        }
         .table thead {
             background-color: #007bff;
             color: white;
@@ -90,6 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         .table tbody tr:hover {
             background-color: #d3e3f3;
+        }
+        .client-info {
+            color: #fff;
+            padding: 15px;
         }
     </style>
 </head>
@@ -118,8 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!-- Page Content -->
 <div class="content">
     <div class="container mt-5">
-        <h2>Your Orders</h2>
-        <table class="table">
+        <h2>Past Orders</h2>
+        <table class="table table-hover table-bordered">
             <thead>
                 <tr>
                     <th>Order ID</th>
@@ -130,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($orders as $order): ?>
+                <?php foreach ($pastOrders as $order): ?>
                     <tr>
                         <td><?= $order['order_id'] ?></td>
                         <td><?= $order['pickup_point'] ?></td>

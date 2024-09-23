@@ -3,6 +3,7 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
+// Ensure the user is logged in and is an admin
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     header('Location: login.php');
     exit;
@@ -10,54 +11,132 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
 
 $conn = new Database();
 
+// Fetch all orders that need a driver assigned
+$orderQuery = "SELECT * FROM orders WHERE status = 'pending'";
+$orders = $conn->getStarted()->query($orderQuery)->fetchAll(PDO::FETCH_ASSOC);
+
 // Fetch all drivers
 $driverQuery = "SELECT * FROM user WHERE permission = 'driver'";
 $drivers = $conn->getStarted()->query($driverQuery)->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch all orders without a driver assigned
-$orderQuery = "SELECT * FROM orders WHERE status = 'pending' AND driver_id IS NULL";
-$orders = $conn->getStarted()->query($orderQuery)->fetchAll(PDO::FETCH_ASSOC);
+// Handle form submission to assign driver
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['driver_id']) && isset($_POST['order_id'])) {
+        $order_id = $_POST['order_id'];
+        $driver_id = $_POST['driver_id'];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order_id']) && isset($_POST['driver_id'])) {
-    $order_id = $_POST['order_id'];
-    $driver_id = $_POST['driver_id'];
+        // Assign the driver and update order status
+        $updateQuery = "UPDATE orders SET driver_id = :driver_id, status = 'assigned' WHERE order_id = :order_id";
+        $stmt = $conn->getStarted()->prepare($updateQuery);
+        $stmt->bindParam(':driver_id', $driver_id);
+        $stmt->bindParam(':order_id', $order_id);
+        $stmt->execute();
 
-    // Assign the driver to the order
-    $updateOrderQuery = "UPDATE orders SET driver_id = :driver_id, status = 'assigned' WHERE order_id = :order_id";
-    $stmt = $conn->getStarted()->prepare($updateOrderQuery);
-    $stmt->bindParam(':driver_id', $driver_id);
-    $stmt->bindParam(':order_id', $order_id);
-    $stmt->execute();
-
-    echo "<div class='alert alert-success'>Driver assigned successfully!</div>";
+        echo "<div class='alert alert-success'>Driver assigned to order successfully!</div>";
+    }
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Driver</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        #sidebar {
+            height: 100%;
+            background-color: #001f3f;
+            padding-top: 20px;
+            width: 250px;
+            position: fixed;
+        }
+        #sidebar .nav-link {
+            color: #fff;
+        }
+        #sidebar .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+        .table thead {
+            background-color: #007bff;
+            color: white;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f0f8ff;
+        }
+        .table tbody tr:hover {
+            background-color: #d3e3f3;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2>Assign Driver</h2>
-    <ul class="list-group">
-        <?php foreach ($drivers as $driver): ?>
-            <li class="list-group-item">
-                <?= $driver['fullname'] ?> (Driver ID: <?= $driver['id'] ?>)
-                <form method="POST" class="d-inline-block">
-                    <input type="hidden" name="driver_id" value="<?= $driver['id'] ?>">
-                    <select name="order_id" class="form-control d-inline-block w-50">
-                        <?php foreach ($orders as $order): ?>
-                            <option value="<?= $order['order_id'] ?>">Order ID: <?= $order['order_id'] ?> (<?= $order['pickup_point'] ?> to <?= $order['destination'] ?>)</option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="submit" class="btn btn-success">Assign Driver</button>
-                </form>
-            </li>
-        <?php endforeach; ?>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="d-flex flex-column">
+    <h4 class="text-white text-center">Admin Dashboard</h4>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="admin.php">Manage Orders</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="assign_driver.php">Assign Driver</a>
+        </li>
     </ul>
+</nav>
+
+<!-- Page Content -->
+<div class="content">
+    <div class="container mt-5">
+        <h2>Assign Driver</h2>
+        <table class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Client ID</th>
+                    <th>Pickup Point</th>
+                    <th>Destination</th>
+                    <th>Assign Driver</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($orders as $order): ?>
+                    <tr>
+                        <td><?= $order['order_id'] ?></td>
+                        <td><?= $order['client_id'] ?></td>
+                        <td><?= $order['pickup_point'] ?></td>
+                        <td><?= $order['destination'] ?></td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                                <select name="driver_id" class="form-control" required>
+                                    <option value="">Select Driver</option>
+                                    <?php foreach ($drivers as $driver): ?>
+                                        <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="submit" class="btn btn-success mt-2">Assign</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

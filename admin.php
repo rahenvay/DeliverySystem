@@ -18,31 +18,32 @@ $orders = $conn->getStarted()->query($query)->fetchAll(PDO::FETCH_ASSOC);
 $driverQuery = "SELECT * FROM user WHERE permission = 'driver'";
 $drivers = $conn->getStarted()->query($driverQuery)->fetchAll(PDO::FETCH_ASSOC);
 
+// Handle POST request for setting price or updating status
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['driver_id']) && isset($_POST['order_id'])) {
-        // Assign driver to order
+    if (isset($_POST['price']) && isset($_POST['order_id'])) {
+        // Set price
         $order_id = $_POST['order_id'];
-        $driver_id = $_POST['driver_id'];
-
-        $updateQuery = "UPDATE orders SET driver_id = :driver_id, status = 'assigned' WHERE order_id = :order_id";
-        $stmt = $conn->getStarted()->prepare($updateQuery);
-        $stmt->bindParam(':driver_id', $driver_id);
-        $stmt->bindParam(':order_id', $order_id);
-        $stmt->execute();
-
-        echo "<div class='alert alert-success'>Order assigned to driver successfully!</div>";
-    } elseif (isset($_POST['price'])) {
-        // Set price for order
-        $order_id = $_POST['order_id'];
-        $price = $_POST['price'];
-
+        $price = floatval($_POST['price']);
+        
         $updateQuery = "UPDATE orders SET price = :price WHERE order_id = :order_id";
         $stmt = $conn->getStarted()->prepare($updateQuery);
         $stmt->bindParam(':price', $price);
         $stmt->bindParam(':order_id', $order_id);
         $stmt->execute();
-
-        echo "<div class='alert alert-success'>Price updated successfully!</div>";
+        
+        echo "<div class='alert alert-success'>Price updated successfully for order ID: {$order_id}</div>";
+    } elseif (isset($_POST['status']) && isset($_POST['order_id'])) {
+        // Update delivery status
+        $order_id = $_POST['order_id'];
+        $status = $_POST['status'];
+        
+        $updateStatusQuery = "UPDATE orders SET status = :status WHERE order_id = :order_id";
+        $stmt = $conn->getStarted()->prepare($updateStatusQuery);
+        $stmt->bindParam(':status', $status);
+        $stmt->bindParam(':order_id', $order_id);
+        $stmt->execute();
+        
+        echo "<div class='alert alert-success'>Status updated to {$status} for order ID: {$order_id}</div>";
     }
 }
 ?>
@@ -59,10 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             display: flex;
             min-height: 100vh;
             flex-direction: column;
+            background-color: #f8f9fa;
         }
         #sidebar {
             height: 100%;
-            background-color: #343a40;
+            background-color: #001f3f;
             padding-top: 20px;
             width: 250px;
             position: fixed;
@@ -70,9 +72,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         #sidebar .nav-link {
             color: #fff;
         }
+        #sidebar .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
         .content {
             margin-left: 260px;
             padding: 20px;
+        }
+        .table thead {
+            background-color: #007bff;
+            color: white;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f0f8ff;
+        }
+        .table tbody tr:hover {
+            background-color: #d3e3f3;
         }
     </style>
 </head>
@@ -88,12 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <li class="nav-item">
             <a class="nav-link" href="assign_driver.php">Assign Driver</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">Order Status</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">Drivers</a>
-        </li>
     </ul>
 </nav>
 
@@ -101,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <div class="content">
     <div class="container mt-5">
         <h2>Manage Orders</h2>
-        <table class="table">
+        <table class="table table-hover table-bordered">
             <thead>
                 <tr>
                     <th>Order ID</th>
@@ -112,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <th>Status</th>
                     <th>Assign Driver</th>
                     <th>Set Price</th>
+                    <th>Update Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,10 +132,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <td><?= $order['client_id'] ?></td>
                         <td><?= $order['pickup_point'] ?></td>
                         <td><?= $order['destination'] ?></td>
-                        <td><?= $order['price'] ?? 'Not Set' ?></td>
-                        <td><?= $order['status'] ?></td>
+                        <td><?= $order['price'] ?? 'Not Set' ?> Baht</td>
+                        <td><?= ucfirst($order['status']) ?></td>
                         <td>
-                            <?php if ($order['status'] == 'pending'): ?>
+                            <?php if ($order['status'] == 'delivered'): ?>
+                                <span class="badge bg-success">The driver with ID: <?= $order['driver_id'] ?> has delivered the item</span>
+                            <?php elseif ($order['status'] == 'pending'): ?>
                                 <form method="POST">
                                     <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
                                     <select name="driver_id" class="form-control" required>
@@ -136,18 +149,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <button type="submit" class="btn btn-success mt-2">Assign</button>
                                 </form>
                             <?php else: ?>
-                                <span>Assigned to Driver ID: <?= $order['driver_id'] ?></span>
+                                <span class="badge bg-info">Assigned to Driver ID: <?= $order['driver_id'] ?></span>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($order['status'] == 'pending' && $order['price'] == null): ?>
+                                <button class="btn btn-primary" onclick="setPrice(<?= $order['order_id'] ?>)">Set Price</button>
+                            <?php elseif ($order['price'] !== null): ?>
+                                <span class="badge bg-primary"><?= $order['price'] ?> Baht</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if ($order['status'] != 'delivered'): ?>
                                 <form method="POST">
                                     <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                                    <input type="number" name="price" class="form-control" placeholder="Set price" required>
-                                    <button type="submit" class="btn btn-primary mt-2">Set Price</button>
+                                    <select name="status" class="form-control" required>
+                                        <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
+                                        <option value="in progress" <?= $order['status'] == 'in progress' ? 'selected' : '' ?>>In Progress</option>
+                                        <option value="delivered" <?= $order['status'] == 'delivered' ? 'selected' : '' ?>>Delivered</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-warning mt-2">Update Status</button>
                                 </form>
-                            <?php elseif ($order['price'] !== null): ?>
-                                <span>Price: <?= $order['price'] ?></span>
+                            <?php else: ?>
+                                <span class="badge bg-success">Delivered</span>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -156,6 +180,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </table>
     </div>
 </div>
+
+<!-- JavaScript for setting the price -->
+<script>
+function setPrice(orderId) {
+    const price = prompt("Please enter the price in Baht:");
+    if (price != null && !isNaN(price) && price.trim() !== "") {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'admin.php';
+        
+        const orderInput = document.createElement('input');
+        orderInput.type = 'hidden';
+        orderInput.name = 'order_id';
+        orderInput.value = orderId;
+        form.appendChild(orderInput);
+        
+        const priceInput = document.createElement('input');
+        priceInput.type = 'hidden';
+        priceInput.name = 'price';
+        priceInput.value = price;
+        form.appendChild(priceInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    } else {
+        alert("Please enter a valid price.");
+    }
+}
+</script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.bundle.min.js"></script>
