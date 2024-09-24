@@ -65,6 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             background-color: #007bff;
             color: white;
         }
+        #sidebar .nav-link.sign-out {
+            color: red; /* Red text for Sign Out */
+        }
         .content {
             margin-left: 260px;
             padding: 20px;
@@ -122,6 +125,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </li>
         <li class="nav-item">
             <a class="nav-link" href="create_order.php">Create Order</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link sign-out" href="?action=logout">Sign Out</a> <!-- Sign Out link -->
         </li>
     </ul>
 </nav>

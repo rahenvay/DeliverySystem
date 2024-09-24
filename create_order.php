@@ -3,6 +3,14 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
+// Handle sign-out
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_unset(); // Remove all session variables
+    session_destroy(); // Destroy the session
+    header('Location: login.php'); // Redirect to login page
+    exit;
+}
+
 // Ensure the user is logged in and is an admin
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     header('Location: login.php');
@@ -90,6 +98,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <li class="nav-item">
             <a class="nav-link active" href="create_order.php">Create Order</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="?action=logout">Sign Out</a>
+        </li>
     </ul>
 </nav>
 
@@ -105,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <select name="client_id" id="client_id" class="form-control" required>
                             <option value="">Choose Client</option>
                             <?php foreach ($clients as $client): ?>
-                                <option value="<?= $client['id'] ?>"><?= $client['fullname'] ?> (ID: <?= $client['id'] ?>)</option>
+                                <option value="<?= htmlspecialchars($client['id']) ?>"><?= htmlspecialchars($client['fullname']) ?> (ID: <?= htmlspecialchars($client['id']) ?>)</option>
                             <?php endforeach; ?>
                         </select>
                     </div>

@@ -40,15 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #001f3f; /* Navy blue */
+            color: #fff;
         }
         .container {
             max-width: 400px; /* Limit the width for larger screens */
             margin-top: 100px; /* Space from top for better visual */
             padding: 20px;
-            background-color: white;
+            background-color: #007bff; /* Bootstrap primary color */
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background-color: #0056b3; /* Darker shade of blue */
+        }
+        .btn-primary:hover {
+            background-color: #004494; /* Even darker shade on hover */
         }
     </style>
 </head>
@@ -66,6 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
+    <div class="mt-3 text-center">
+        <span class="text-light">Don't have an account yet? </span>
+        <a href="index.php" class="text-light">Sign up here</a>.
+    </div>
 </div>
 </body>
 </html>

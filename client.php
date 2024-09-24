@@ -8,6 +8,13 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     exit;
 }
 
+// Logout functionality
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+
 $conn = new Database();
 $client_id = $_SESSION['user_id'];
 
@@ -105,6 +112,9 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <li class="nav-item">
             <a class="nav-link" href="past_order.php">Past Orders</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link text-danger" href="?action=logout">Sign Out</a>
+        </li>
     </ul>
 </nav>
 
@@ -120,7 +130,6 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <th>Destination</th>
                     <th>Price</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,40 +141,11 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <td><?= htmlspecialchars($order['destination']) ?></td>
                             <td><?= htmlspecialchars($order['price'] ?? 'N/A') ?></td>
                             <td><?= htmlspecialchars($order['status']) ?></td>
-                            <td>
-                                <?php if ($order['status'] == 'pending' || $order['status'] == 'in_progress'): ?>
-                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal<?= $order['order_id'] ?>">Cancel</button>
-                                    
-                                    <!-- Cancel Order Modal -->
-                                    <div class="modal fade" id="cancelModal<?= $order['order_id'] ?>" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="cancelModalLabel">Cancel Order #<?= htmlspecialchars($order['order_id']) ?></h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form method="POST">
-                                                        <input type="hidden" name="cancel_order_id" value="<?= htmlspecialchars($order['order_id']) ?>">
-                                                        <div class="mb-3">
-                                                            <label for="cancel_reason" class="form-label">Reason for Cancellation</label>
-                                                            <textarea class="form-control" id="cancel_reason" name="cancel_reason" required></textarea>
-                                                        </div>
-                                                        <button type="submit" class="btn btn-primary">Submit</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php else: ?>
-                                    <span class="text-muted">Cannot Cancel</span>
-                                <?php endif; ?>
-                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" class="text-center">No orders found.</td>
+                        <td colspan="5" class="text-center">No orders found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

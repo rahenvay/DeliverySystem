@@ -3,6 +3,15 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
+// Handle sign-out
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_unset(); // Remove all session variables
+    session_destroy(); // Destroy the session
+    header('Location: login.php'); // Redirect to login page
+    exit;
+}
+
+// Ensure the user is logged in and is a client
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     header('Location: login.php');
     exit;
@@ -97,8 +106,8 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <nav id="sidebar" class="d-flex flex-column col-md-3 col-lg-2 p-3">
     <h4 class="text-white text-center">Client Dashboard</h4>
     <div class="client-info">
-        <p><strong>Name:</strong> <?= $clientInfo['fullname'] ?></p>
-        <p><strong>ID:</strong> <?= $client_id ?></p>
+        <p><strong>Name:</strong> <?= htmlspecialchars($clientInfo['fullname']) ?></p>
+        <p><strong>ID:</strong> <?= htmlspecialchars($client_id) ?></p>
     </div>
     <ul class="nav flex-column">
         <li class="nav-item">
@@ -106,6 +115,9 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </li>
         <li class="nav-item">
             <a class="nav-link" href="past_order.php">Past Orders</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="?action=logout">Sign Out</a>
         </li>
     </ul>
 </nav>
@@ -125,15 +137,21 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($pastOrders as $order): ?>
+                <?php if (count($pastOrders) > 0): ?>
+                    <?php foreach ($pastOrders as $order): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($order['order_id']) ?></td>
+                            <td><?= htmlspecialchars($order['pickup_point']) ?></td>
+                            <td><?= htmlspecialchars($order['destination']) ?></td>
+                            <td><?= htmlspecialchars($order['price']) ?></td>
+                            <td><?= htmlspecialchars($order['status']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <tr>
-                        <td><?= $order['order_id'] ?></td>
-                        <td><?= $order['pickup_point'] ?></td>
-                        <td><?= $order['destination'] ?></td>
-                        <td><?= $order['price'] ?></td>
-                        <td><?= $order['status'] ?></td>
+                        <td colspan="5" class="text-center">No past orders found.</td>
                     </tr>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

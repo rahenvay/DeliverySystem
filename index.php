@@ -32,20 +32,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #001f3f; /* Navy Blue */
+            color: #fff;
         }
         .container {
             max-width: 600px; /* Limit the width for larger screens */
             margin-top: 50px;
             padding: 20px;
-            background-color: white;
+            background-color: #007bff; /* Bootstrap primary color */
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            width: 100px; /* Adjust the logo size */
+        }
+        .form-label {
+            color: #fff;
+        }
+        .btn-primary {
+            background-color: #0056b3; /* Darker shade of blue */
+        }
+        .btn-primary:hover {
+            background-color: #004494; /* Even darker shade on hover */
         }
     </style>
 </head>
 <body>
 <div class="container">
+    <div class="logo">
+        <img src="logo.png" alt="App Logo"> <!-- Replace with your logo path -->
+    </div>
     <h2 class="text-center">Create User</h2>
     <form method="POST">
         <div class="mb-3">
@@ -72,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div class="mt-3 text-center">
-        Already have an account? <a href="login.php">Login here</a>.
+        Already have an account? <a href="login.php" class="text-light">Login here</a>.
     </div>
 </div>
 </body>

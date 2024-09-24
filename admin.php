@@ -3,6 +3,13 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
+// Sign out logic
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_destroy(); // Destroy the session
+    header('Location: login.php'); // Redirect to login page
+    exit;
+}
+
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     header('Location: login.php');
     exit;
@@ -131,6 +138,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <li class="nav-item">
             <a class="nav-link" href="create_order.php">Create Order</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link text-danger" href="?action=logout">Sign Out</a> <!-- Sign Out link -->
+        </li>
     </ul>
 </nav>
 
@@ -219,17 +229,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <form method="POST">
                                         <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
                                         <select name="status" class="form-control" required>
-                                            <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
-                                            <option value="assigned" <?= $order['status'] == 'assigned' ? 'selected' : '' ?>>Assigned</option>
-                                            <option value="picked_up" <?= $order['status'] == 'picked_up' ? 'selected' : '' ?>>Picked Up</option>
-                                            <option value="in_transit" <?= $order['status'] == 'in_transit' ? 'selected' : '' ?>>In Transit</option>
-                                            <option value="delivered" <?= $order['status'] == 'delivered' ? 'selected' : '' ?>>Delivered</option>
-                                            <option value="cancelled" <?= $order['status'] == 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                            <option value="">Update Status</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="assigned">Assigned</option>
+                                            <option value="picked_up">Picked Up</option>
+                                            <option value="in_transit">In Transit</option>
+                                            <option value="delivered">Delivered</option>
+                                            <option value="cancelled">Cancelled</option>
                                         </select>
                                         <button type="submit" class="btn btn-warning mt-2">Update</button>
                                     </form>
-                                <?php else: ?>
-                                    <span class="badge bg-success">Delivered</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -240,6 +249,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </div>
 
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"></script>
 </body>
 </html>

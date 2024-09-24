@@ -3,11 +3,13 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
+// Check if the user is logged in as a driver
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'driver') {
     header('Location: login.php');
     exit;
 }
 
+// Database connection
 $conn = new Database();
 $driver_id = $_SESSION['user_id'];
 
@@ -18,6 +20,7 @@ $stmt->bindParam(':driver_id', $driver_id);
 $stmt->execute();
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Handle status updates
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $order_id = $_POST['order_id'];
     $status = $_POST['status'];
@@ -38,6 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     echo "<div class='alert alert-success'>Order status updated successfully!</div>";
+}
+
+// Sign out functionality
+if (isset($_POST['sign_out'])) {
+    session_destroy(); // Destroy the session
+    header('Location: index.php'); // Redirect to the sign-up page
+    exit;
 }
 ?>
 
@@ -68,11 +78,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        .btn-sign-out {
+            background-color: #dc3545; /* Bootstrap danger color */
+            color: white;
+        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="text-center">Assigned Orders</h2>
+
+    <div class="text-end">
+        <form method="POST" class="mb-3">
+            <button type="submit" name="sign_out" class="btn btn-sign-out">Sign Out</button>
+        </form>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-striped table-bordered">
             <thead>
