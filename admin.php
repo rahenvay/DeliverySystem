@@ -18,10 +18,17 @@ $orders = $conn->getStarted()->query($query)->fetchAll(PDO::FETCH_ASSOC);
 $driverQuery = "SELECT * FROM user WHERE permission = 'driver'";
 $drivers = $conn->getStarted()->query($driverQuery)->fetchAll(PDO::FETCH_ASSOC);
 
+// Count total accounts (drivers, clients, and admins)
+$totalAccountsQuery = "SELECT COUNT(*) as total_accounts FROM user";
+$totalAccounts = $conn->getStarted()->query($totalAccountsQuery)->fetch(PDO::FETCH_ASSOC)['total_accounts'];
+
+// Count total orders
+$totalOrdersQuery = "SELECT COUNT(*) as total_orders FROM orders";
+$totalOrders = $conn->getStarted()->query($totalOrdersQuery)->fetch(PDO::FETCH_ASSOC)['total_orders'];
+
 // Handle POST request for setting price or updating status
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['price']) && isset($_POST['order_id'])) {
-        // Set price
         $order_id = $_POST['order_id'];
         $price = floatval($_POST['price']);
         
@@ -33,17 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         echo "<div class='alert alert-success'>Price updated successfully for order ID: {$order_id}</div>";
     } elseif (isset($_POST['status']) && isset($_POST['order_id'])) {
-        // Update delivery status
         $order_id = $_POST['order_id'];
         $status = $_POST['status'];
+
+        $validStatuses = ['pending', 'assigned', 'picked_up', 'in_transit', 'delivered', 'cancelled'];
         
-        $updateStatusQuery = "UPDATE orders SET status = :status WHERE order_id = :order_id";
-        $stmt = $conn->getStarted()->prepare($updateStatusQuery);
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':order_id', $order_id);
-        $stmt->execute();
-        
-        echo "<div class='alert alert-success'>Status updated to {$status} for order ID: {$order_id}</div>";
+        if (in_array($status, $validStatuses)) {
+            $updateStatusQuery = "UPDATE orders SET status = :status WHERE order_id = :order_id";
+            $stmt = $conn->getStarted()->prepare($updateStatusQuery);
+            $stmt->bindParam(':status', $status);
+            $stmt->bindParam(':order_id', $order_id);
+            $stmt->execute();
+            
+            echo "<div class='alert alert-success'>Status updated to {$status} for order ID: {$order_id}</div>";
+        } else {
+            echo "<div class='alert alert-danger'>Invalid status value!</div>";
+        }
     }
 }
 ?>
@@ -66,7 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             height: 100%;
             background-color: #001f3f;
             padding-top: 20px;
-            width: 250px;
+            width: 100%;
+            max-width: 250px;
             position: fixed;
         }
         #sidebar .nav-link {
@@ -79,6 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .content {
             margin-left: 260px;
             padding: 20px;
+            flex-grow: 1;
         }
         .table thead {
             background-color: #007bff;
@@ -89,6 +103,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         .table tbody tr:hover {
             background-color: #d3e3f3;
+        }
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 100%;
+                position: static;
+                max-width: none;
+            }
+            .content {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -104,113 +128,118 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <li class="nav-item">
             <a class="nav-link" href="assign_driver.php">Assign Driver</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="create_order.php">Create Order</a>
+        </li>
     </ul>
 </nav>
 
 <!-- Page Content -->
 <div class="content">
     <div class="container mt-5">
+        <div class="overview-table">
+            <h2>Admin Overview</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Total Accounts</th>
+                            <th>Total Orders</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><?= $totalAccounts ?></td>
+                            <td><?= $totalOrders ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
         <h2>Manage Orders</h2>
-        <table class="table table-hover table-bordered">
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Client ID</th>
-                    <th>Pickup Point</th>
-                    <th>Destination</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Assign Driver</th>
-                    <th>Set Price</th>
-                    <th>Update Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($orders as $order): ?>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead>
                     <tr>
-                        <td><?= $order['order_id'] ?></td>
-                        <td><?= $order['client_id'] ?></td>
-                        <td><?= $order['pickup_point'] ?></td>
-                        <td><?= $order['destination'] ?></td>
-                        <td><?= $order['price'] ?? 'Not Set' ?> Baht</td>
-                        <td><?= ucfirst($order['status']) ?></td>
-                        <td>
-                            <?php if ($order['status'] == 'delivered'): ?>
-                                <span class="badge bg-success">The driver with ID: <?= $order['driver_id'] ?> has delivered the item</span>
-                            <?php elseif ($order['status'] == 'pending'): ?>
-                                <form method="POST">
-                                    <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                                    <select name="driver_id" class="form-control" required>
-                                        <option value="">Select Driver</option>
-                                        <?php foreach ($drivers as $driver): ?>
-                                            <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <button type="submit" class="btn btn-success mt-2">Assign</button>
-                                </form>
-                            <?php else: ?>
-                                <span class="badge bg-info">Assigned to Driver ID: <?= $order['driver_id'] ?></span>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if ($order['status'] == 'pending' && $order['price'] == null): ?>
-                                <button class="btn btn-primary" onclick="setPrice(<?= $order['order_id'] ?>)">Set Price</button>
-                            <?php elseif ($order['price'] !== null): ?>
-                                <span class="badge bg-primary"><?= $order['price'] ?> Baht</span>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if ($order['status'] != 'delivered'): ?>
-                                <form method="POST">
-                                    <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                                    <select name="status" class="form-control" required>
-                                        <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
-                                        <option value="in progress" <?= $order['status'] == 'in progress' ? 'selected' : '' ?>>In Progress</option>
-                                        <option value="delivered" <?= $order['status'] == 'delivered' ? 'selected' : '' ?>>Delivered</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-warning mt-2">Update Status</button>
-                                </form>
-                            <?php else: ?>
-                                <span class="badge bg-success">Delivered</span>
-                            <?php endif; ?>
-                        </td>
+                        <th>Order ID</th>
+                        <th>Client ID</th>
+                        <th>Pickup Point</th>
+                        <th>Destination</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Assign Driver</th>
+                        <th>Set Price</th>
+                        <th>Update Status</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($orders as $order): ?>
+                        <tr>
+                            <td><?= $order['order_id'] ?></td>
+                            <td><?= $order['client_id'] ?></td>
+                            <td><?= $order['pickup_point'] ?></td>
+                            <td><?= $order['destination'] ?></td>
+                            <td><?= $order['price'] ?? 'Not Set' ?> Baht</td>
+                            <td><?= ucfirst($order['status']) ?></td>
+                            <td>
+                                <?php if ($order['status'] == 'delivered'): ?>
+                                    <span class="badge bg-success">Driver with ID: <?= $order['driver_id'] ?> has delivered the item</span>
+                                <?php elseif ($order['status'] == 'pending'): ?>
+                                    <form method="POST">
+                                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                                        <select name="driver_id" class="form-control" required>
+                                            <option value="">Select Driver</option>
+                                            <?php foreach ($drivers as $driver): ?>
+                                                <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <button type="submit" class="btn btn-success mt-2">Assign</button>
+                                    </form>
+                                <?php else: ?>
+                                    <span class="badge bg-info">Assigned to Driver ID: <?= $order['driver_id'] ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($order['status'] == 'pending' && $order['price'] == null): ?>
+                                    <form method="POST">
+                                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                                        <div class="input-group">
+                                            <input type="number" step="0.01" name="price" class="form-control" placeholder="Enter price" required>
+                                            <button type="submit" class="btn btn-primary">Set Price</button>
+                                        </div>
+                                    </form>
+                                <?php elseif ($order['price'] !== null): ?>
+                                    <span class="badge bg-primary"><?= $order['price'] ?> Baht</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($order['status'] != 'delivered'): ?>
+                                    <form method="POST">
+                                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                                        <select name="status" class="form-control" required>
+                                            <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
+                                            <option value="assigned" <?= $order['status'] == 'assigned' ? 'selected' : '' ?>>Assigned</option>
+                                            <option value="picked_up" <?= $order['status'] == 'picked_up' ? 'selected' : '' ?>>Picked Up</option>
+                                            <option value="in_transit" <?= $order['status'] == 'in_transit' ? 'selected' : '' ?>>In Transit</option>
+                                            <option value="delivered" <?= $order['status'] == 'delivered' ? 'selected' : '' ?>>Delivered</option>
+                                            <option value="cancelled" <?= $order['status'] == 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-warning mt-2">Update</button>
+                                    </form>
+                                <?php else: ?>
+                                    <span class="badge bg-success">Delivered</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- JavaScript for setting the price -->
-<script>
-function setPrice(orderId) {
-    const price = prompt("Please enter the price in Baht:");
-    if (price != null && !isNaN(price) && price.trim() !== "") {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'admin.php';
-        
-        const orderInput = document.createElement('input');
-        orderInput.type = 'hidden';
-        orderInput.name = 'order_id';
-        orderInput.value = orderId;
-        form.appendChild(orderInput);
-        
-        const priceInput = document.createElement('input');
-        priceInput.type = 'hidden';
-        priceInput.name = 'price';
-        priceInput.value = price;
-        form.appendChild(priceInput);
-        
-        document.body.appendChild(form);
-        form.submit();
-    } else {
-        alert("Please enter a valid price.");
-    }
-}
-</script>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

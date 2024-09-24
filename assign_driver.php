@@ -47,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <style>
         body {
             display: flex;
-            min-height: 100vh;
             flex-direction: column;
+            min-height: 100vh;
             background-color: #f8f9fa;
         }
         #sidebar {
@@ -68,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .content {
             margin-left: 260px;
             padding: 20px;
+            flex-grow: 1;
         }
         .table thead {
             background-color: #007bff;
@@ -78,6 +79,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         .table tbody tr:hover {
             background-color: #d3e3f3;
+        }
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 100%;
+                position: static;
+                max-width: none;
+            }
+            .content {
+                margin-left: 0;
+            }
+        }
+        @media (max-width: 576px) {
+            .table thead {
+                display: none;
+            }
+            .table-responsive table td {
+                display: block;
+                width: 100%;
+                border: none;
+            }
+            .table-responsive table td:before {
+                content: attr(data-label);
+                font-weight: bold;
+                display: block;
+                margin-bottom: 5px;
+            }
         }
     </style>
 </head>
@@ -93,6 +120,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <li class="nav-item">
             <a class="nav-link active" href="assign_driver.php">Assign Driver</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="create_order.php">Create Order</a>
+        </li>
     </ul>
 </nav>
 
@@ -100,39 +130,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <div class="content">
     <div class="container mt-5">
         <h2>Assign Driver</h2>
-        <table class="table table-hover table-bordered">
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Client ID</th>
-                    <th>Pickup Point</th>
-                    <th>Destination</th>
-                    <th>Assign Driver</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($orders as $order): ?>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead>
                     <tr>
-                        <td><?= $order['order_id'] ?></td>
-                        <td><?= $order['client_id'] ?></td>
-                        <td><?= $order['pickup_point'] ?></td>
-                        <td><?= $order['destination'] ?></td>
-                        <td>
-                            <form method="POST">
-                                <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                                <select name="driver_id" class="form-control" required>
-                                    <option value="">Select Driver</option>
-                                    <?php foreach ($drivers as $driver): ?>
-                                        <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <button type="submit" class="btn btn-success mt-2">Assign</button>
-                            </form>
-                        </td>
+                        <th>Order ID</th>
+                        <th>Client ID</th>
+                        <th>Pickup Point</th>
+                        <th>Destination</th>
+                        <th>Assign Driver</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($orders as $order): ?>
+                        <tr>
+                            <td data-label="Order ID"><?= $order['order_id'] ?></td>
+                            <td data-label="Client ID"><?= $order['client_id'] ?></td>
+                            <td data-label="Pickup Point"><?= $order['pickup_point'] ?></td>
+                            <td data-label="Destination"><?= $order['destination'] ?></td>
+                            <td data-label="Assign Driver">
+                                <form method="POST">
+                                    <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                                    <select name="driver_id" class="form-control" required>
+                                        <option value="">Select Driver</option>
+                                        <?php foreach ($drivers as $driver): ?>
+                                            <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button type="submit" class="btn btn-success mt-2">Assign</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

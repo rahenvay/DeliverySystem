@@ -50,6 +50,13 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
         }
         #sidebar .nav-link {
             color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+        #sidebar .nav-link:hover {
+            background-color: #00509E;
         }
         #sidebar .nav-link.active {
             background-color: #007bff;
@@ -58,10 +65,15 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
         .content {
             margin-left: 260px;
             padding: 20px;
+            flex-grow: 1;
+            transition: margin-left 0.3s;
         }
         .client-info {
             color: white;
             padding: 15px;
+            border-bottom: 1px solid #007bff;
+            margin-bottom: 20px;
+            text-align: center;
         }
         .table thead {
             background-color: #007bff;
@@ -73,6 +85,18 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
         .table tbody tr:hover {
             background-color: #d3e3f3;
         }
+        @media (max-width: 768px) {
+            #sidebar {
+                position: relative;
+                height: auto;
+                width: 100%;
+                min-height: 60px; /* Adjusted height */
+            }
+            .content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -81,15 +105,12 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 <nav id="sidebar" class="d-flex flex-column">
     <h4 class="text-white text-center">Client Dashboard</h4>
     <div class="client-info">
-        <p><strong>Name:</strong> <?= $clientInfo['fullname'] ?></p>
-        <p><strong>ID:</strong> <?= $client_id ?></p>
+        <p><strong>Name:</strong> <?= htmlspecialchars($clientInfo['fullname']) ?></p>
+        <p><strong>ID:</strong> <?= htmlspecialchars($client_id) ?></p>
     </div>
     <ul class="nav flex-column">
         <li class="nav-item">
             <a class="nav-link active" href="checkStatus.php">Check Status</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="new_order.php">New Order</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="past_order.php">Past Orders</a>
@@ -101,7 +122,7 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
 <div class="content">
     <div class="container mt-5">
         <h2>Your Order Status</h2>
-        <table class="table">
+        <table class="table table-responsive">
             <thead>
                 <tr>
                     <th>Order ID</th>
@@ -113,16 +134,22 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($orders as $order): ?>
+                <?php if (count($orders) > 0): ?>
+                    <?php foreach ($orders as $order): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($order['order_id']) ?></td>
+                            <td><?= htmlspecialchars($order['pickup_point']) ?></td>
+                            <td><?= htmlspecialchars($order['destination']) ?></td>
+                            <td><?= htmlspecialchars($order['price'] ?? 'Pending') ?></td>
+                            <td><?= htmlspecialchars($order['status']) ?></td>
+                            <td><?= htmlspecialchars($order['driver_id'] ?? 'Not Assigned') ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
                     <tr>
-                        <td><?= $order['order_id'] ?></td>
-                        <td><?= $order['pickup_point'] ?></td>
-                        <td><?= $order['destination'] ?></td>
-                        <td><?= $order['price'] ?? 'Pending' ?></td>
-                        <td><?= $order['status'] ?></td>
-                        <td><?= $order['driver_id'] ?? 'Not Assigned' ?></td>
+                        <td colspan="6" class="text-center">No orders found.</td>
                     </tr>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

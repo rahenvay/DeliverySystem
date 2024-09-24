@@ -26,20 +26,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: driver.php');
         }
     } else {
-        echo "Invalid email or password.";
+        echo "<div class='alert alert-danger'>Invalid email or password.</div>";
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 400px; /* Limit the width for larger screens */
+            margin-top: 100px; /* Space from top for better visual */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2>Login</h2>
+<div class="container">
+    <h2 class="text-center">Login</h2>
     <form method="POST">
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
@@ -49,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <label for="password" class="form-label">Password</label>
             <input type="password" class="form-control" id="password" name="password" required>
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
 </div>
 </body>

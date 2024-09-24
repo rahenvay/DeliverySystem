@@ -37,25 +37,35 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         body {
             display: flex;
             min-height: 100vh;
-            flex-direction: column;
+            flex-direction: row;
             background-color: #f8f9fa;
         }
         #sidebar {
-            height: 100%;
             background-color: #001f3f;
             padding-top: 20px;
-            width: 250px;
-            position: fixed;
+            min-height: 100vh;
         }
         #sidebar .nav-link {
             color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        #sidebar .nav-link:hover {
+            background-color: #007bff;
+            color: white;
         }
         #sidebar .nav-link.active {
             background-color: #007bff;
             color: white;
         }
+        .client-info {
+            color: #fff;
+            padding: 15px;
+            border-bottom: 1px solid #007bff;
+            text-align: center;
+        }
         .content {
-            margin-left: 260px;
+            flex-grow: 1;
             padding: 20px;
         }
         .table thead {
@@ -68,16 +78,23 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .table tbody tr:hover {
             background-color: #d3e3f3;
         }
-        .client-info {
-            color: #fff;
-            padding: 15px;
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #sidebar {
+                min-height: auto;
+            }
+            .content {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
 
 <!-- Sidebar -->
-<nav id="sidebar" class="d-flex flex-column">
+<nav id="sidebar" class="d-flex flex-column col-md-3 col-lg-2 p-3">
     <h4 class="text-white text-center">Client Dashboard</h4>
     <div class="client-info">
         <p><strong>Name:</strong> <?= $clientInfo['fullname'] ?></p>
@@ -88,17 +105,14 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <a class="nav-link active" href="checkStatus.php">Check Status</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="new_order.php">New Order</a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link" href="past_order.php">Past Orders</a>
         </li>
     </ul>
 </nav>
 
 <!-- Page Content -->
-<div class="content">
-    <div class="container mt-5">
+<div class="content col-md-9 ms-sm-auto col-lg-10">
+    <div class="container mt-4">
         <h2>Past Orders</h2>
         <table class="table table-hover table-bordered">
             <thead>

@@ -24,14 +24,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create User</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px; /* Limit the width for larger screens */
+            margin-top: 50px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2>Create User</h2>
+<div class="container">
+    <h2 class="text-center">Create User</h2>
     <form method="POST">
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
@@ -53,11 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <option value="driver">Driver</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Create Account</button>
+        <button type="submit" class="btn btn-primary w-100">Create Account</button>
     </form>
 
-    <div class="mt-3">
-        <!-- After successful registration, we will show this link -->
+    <div class="mt-3 text-center">
         Already have an account? <a href="login.php">Login here</a>.
     </div>
 </div>

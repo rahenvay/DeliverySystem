@@ -42,8 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -70,39 +72,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
 <div class="container mt-5">
-    <h2>Assigned Orders</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Pickup Point</th>
-                <th>Destination</th>
-                <th>Status</th>
-                <th>Update Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($orders as $order): ?>
+    <h2 class="text-center">Assigned Orders</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
                 <tr>
-                    <td><?= $order['order_id'] ?></td>
-                    <td><?= $order['pickup_point'] ?></td>
-                    <td><?= $order['destination'] ?></td>
-                    <td><?= $order['status'] ?></td>
-                    <td>
-                        <form method="POST">
-                            <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                            <select name="status" class="form-control">
-                                <option value="picked_up">Picked Up</option>
-                                <option value="in_transit">In Transit</option>
-                                <option value="delivered">Delivered</option>
-                            </select>
-                            <button type="submit" class="btn btn-primary mt-2">Update Status</button>
-                        </form>
-                    </td>
+                    <th>Order ID</th>
+                    <th>Pickup Point</th>
+                    <th>Destination</th>
+                    <th>Status</th>
+                    <th>Update Status</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <?php foreach ($orders as $order): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($order['order_id']) ?></td>
+                        <td><?= htmlspecialchars($order['pickup_point']) ?></td>
+                        <td><?= htmlspecialchars($order['destination']) ?></td>
+                        <td><?= htmlspecialchars($order['status']) ?></td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="order_id" value="<?= htmlspecialchars($order['order_id']) ?>">
+                                <select name="status" class="form-select">
+                                    <option value="picked_up">Picked Up</option>
+                                    <option value="in_transit">In Transit</option>
+                                    <option value="delivered">Delivered</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary mt-2 w-100">Update Status</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 </body>
 </html>
