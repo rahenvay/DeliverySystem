@@ -43,10 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     echo "<div class='alert alert-success'>Order status updated successfully!</div>";
 }
 
-// Sign out functionality
+
 if (isset($_POST['sign_out'])) {
-    session_destroy(); // Destroy the session
-    header('Location: index.php'); // Redirect to the sign-up page
+    session_destroy(); 
+    header('Location: index.php'); 
     exit;
 }
 ?>
@@ -79,7 +79,7 @@ if (isset($_POST['sign_out'])) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .btn-sign-out {
-            background-color: #dc3545; /* Bootstrap danger color */
+            background-color: #dc3545; 
             color: white;
         }
     </style>

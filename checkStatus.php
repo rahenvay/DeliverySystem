@@ -19,8 +19,8 @@ $stmtClient->bindParam(':client_id', $client_id);
 $stmtClient->execute();
 $clientInfo = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
-// Fetch client's orders
-$orderQuery = "SELECT * FROM orders WHERE client_id = :client_id";
+// Fetch client's orders that are still in progress (excluding delivered/cancelled orders)
+$orderQuery = "SELECT * FROM orders WHERE client_id = :client_id AND status NOT IN ('delivered', 'cancelled')";
 $stmtOrders = $conn->getStarted()->prepare($orderQuery);
 $stmtOrders->bindParam(':client_id', $client_id);
 $stmtOrders->execute();

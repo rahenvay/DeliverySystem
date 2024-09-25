@@ -40,22 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #001f3f; /* Navy blue */
+            background-color: #001f3f; 
             color: #fff;
         }
         .container {
-            max-width: 400px; /* Limit the width for larger screens */
-            margin-top: 100px; /* Space from top for better visual */
+            max-width: 400px; 
+            margin-top: 100px; 
             padding: 20px;
-            background-color: #007bff; /* Bootstrap primary color */
+            background-color: #007bff; 
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         .btn-primary {
-            background-color: #0056b3; /* Darker shade of blue */
+            background-color: #0056b3; 
         }
         .btn-primary:hover {
-            background-color: #004494; /* Even darker shade on hover */
+            background-color: #004494; 
         }
     </style>
 </head>

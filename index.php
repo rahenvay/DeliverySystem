@@ -32,14 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #001f3f; /* Navy Blue */
+            background-color: #001f3f; 
             color: #fff;
         }
         .container {
-            max-width: 600px; /* Limit the width for larger screens */
+            max-width: 600px; 
             margin-top: 50px;
             padding: 20px;
-            background-color: #007bff; /* Bootstrap primary color */
+            background-color: #007bff; 
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
@@ -48,23 +48,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 20px;
         }
         .logo img {
-            width: 100px; /* Adjust the logo size */
+            width: 100px; 
         }
         .form-label {
             color: #fff;
         }
         .btn-primary {
-            background-color: #0056b3; /* Darker shade of blue */
+            background-color: #0056b3; 
         }
         .btn-primary:hover {
-            background-color: #004494; /* Even darker shade on hover */
+            background-color: #004494; 
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="logo">
-        <img src="logo.png" alt="App Logo"> <!-- Replace with your logo path -->
+        <img src="logo.png" alt="App Logo"> 
     </div>
     <h2 class="text-center">Create User</h2>
     <form method="POST">

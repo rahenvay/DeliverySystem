@@ -3,15 +3,15 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
-// Handle sign-out
+// This is to sign out bro, dont forget!
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    session_unset(); // Remove all session variables
-    session_destroy(); // Destroy the session
-    header('Location: login.php'); // Redirect to login page
+    session_unset(); 
+    session_destroy(); 
+    header('Location: login.php'); 
     exit;
 }
 
-// Ensure the user is logged in and is a client
+// To Make Sure the user is logged in and is a client
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     header('Location: login.php');
     exit;

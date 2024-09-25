@@ -8,7 +8,7 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     exit;
 }
 
-// Logout functionality
+
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_destroy();
     header('Location: login.php');
@@ -87,7 +87,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 position: relative;
                 height: auto;
                 width: 100%;
-                min-height: 60px; /* Adjusted height */
+                min-height: 60px; 
             }
             .content {
                 margin-left: 0;
