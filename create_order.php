@@ -3,7 +3,6 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
-
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_unset(); 
     session_destroy(); 
@@ -11,7 +10,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
-// To Make Sure the user is logged in and is an admin
+// Ensure the user is logged in and is an admin
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     header('Location: login.php');
     exit;
@@ -30,17 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $destination = $_POST['destination'];
     $price = $_POST['price'];
 
-    // Insert the new order into the database
-    $insertOrderQuery = "INSERT INTO orders (client_id, pickup_point, destination, price, status) 
-                         VALUES (:client_id, :pickup_point, :destination, :price, 'pending')";
-    $stmt = $conn->getStarted()->prepare($insertOrderQuery);
-    $stmt->bindParam(':client_id', $client_id);
-    $stmt->bindParam(':pickup_point', $pickup_point);
-    $stmt->bindParam(':destination', $destination);
-    $stmt->bindParam(':price', $price);
-    $stmt->execute();
+    // Validate price to ensure it is not negative
+    if ($price < 0) {
+        echo "<div class='alert alert-danger'>Price cannot be negative!</div>";
+    } else {
+        // Insert the new order into the database
+        $insertOrderQuery = "INSERT INTO orders (client_id, pickup_point, destination, price, status) 
+                             VALUES (:client_id, :pickup_point, :destination, :price, 'pending')";
+        $stmt = $conn->getStarted()->prepare($insertOrderQuery);
+        $stmt->bindParam(':client_id', $client_id);
+        $stmt->bindParam(':pickup_point', $pickup_point);
+        $stmt->bindParam(':destination', $destination);
+        $stmt->bindParam(':price', $price);
+        $stmt->execute();
 
-    echo "<div class='alert alert-success'>Order created successfully!</div>";
+        echo "<div class='alert alert-success'>Order created successfully!</div>";
+    }
 }
 ?>
 
@@ -99,6 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <a class="nav-link active" href="create_order.php">Create Order</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" href="user_overview.php">User Overview</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" href="?action=logout">Sign Out</a>
         </li>
     </ul>
@@ -141,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="col-md-6">
                     <div class="form-group mt-3 mt-md-0">
                         <label for="price">Price (Baht):</label>
-                        <input type="number" name="price" id="price" class="form-control" placeholder="Enter Price" required>
+                        <input type="number" name="price" id="price" class="form-control" placeholder="Enter Price" required min="0">
                     </div>
                 </div>
             </div>
