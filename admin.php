@@ -1,7 +1,10 @@
 <?php
 session_start();
 require_once 'Classes/Admin.php';
+require_once 'Database/Database.php'; // Include Database class
+
 use DELIVERY\Classes\Admin\Admin;
+use DELIVERY\Database\Database;
 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_destroy();
@@ -14,17 +17,28 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     exit;
 }
 
-$admin = new Admin();
+$database = new Database(); // Create a new Database instance
+$admin = new Admin($database); // Pass Database instance to Admin
 
-// Fetch all orders
-$orders = $admin->fetchAllOrders();
+// Count total orders for pagination
+$totalOrders = $admin->countTotalOrders();
+$limit = 7; // Number of orders to display per page
+$totalPages = ceil($totalOrders / $limit); // Calculate total pages
+
+// Get current page from URL, default to 1 if not set
+$currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$currentPage = max(1, min($currentPage, $totalPages)); // Ensure current page is within bounds
+
+$offset = ($currentPage - 1) * $limit; // Calculate offset for SQL query
+
+// Fetch orders for the current page
+$orders = $admin->fetchAllOrders($limit, $offset);
 
 // Fetch all drivers
 $drivers = $admin->fetchAllDrivers();
 
-// Count total accounts and total orders
+// Count total accounts
 $totalAccounts = $admin->countTotalAccounts();
-$totalOrders = $admin->countTotalOrders();
 
 // Handle POST request for updating status
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['status']) && isset($_POST['order_id'])) {
@@ -177,45 +191,71 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['driver_id']) && isset(
                             <td><?= $order['client_id'] ?></td>
                             <td><?= $order['pickup_point'] ?></td>
                             <td><?= $order['destination'] ?></td>
-                            <td><?= number_format($order['price'], 2) ?> Baht</td>
-                            <td><?= ucfirst($order['status']) ?></td>
+                            <td><?= $order['price'] ?></td>
+                            <td><?= $order['status'] ?></td>
                             <td>
-                                <?php if ($order['status'] == 'delivered'): ?>
-                                    <span class="badge bg-success">Driver with ID: <?= $order['driver_id'] ?> has delivered the item</span>
-                                <?php elseif ($order['status'] == 'pending'): ?>
+                                <?php if ($order['status'] === 'delivered'): ?>
+                                    <span class="text-success">Delivery Completed</span>
+                                <?php else: ?>
                                     <form method="POST">
                                         <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
                                         <select name="driver_id" class="form-select">
+                                            <option value="">Select Driver</option>
                                             <?php foreach ($drivers as $driver): ?>
-                                                <option value="<?= $driver['id'] ?>">Driver: <?= $driver['fullname'] ?></option>
+                                                <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <button type="submit" class="btn btn-primary mt-1">Assign Driver</button>
+                                        <button type="submit" class="btn btn-primary mt-1">Assign</button>
                                     </form>
-                                <?php else: ?>
-                                    <span class="badge bg-info">Assigned to driver with ID: <?= $order['driver_id'] ?></span>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <form method="POST">
-                                    <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                                    <select name="status" class="form-select">
-                                        <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
-                                        <option value="assigned" <?= $order['status'] == 'assigned' ? 'selected' : '' ?>>Assigned</option>
-                                        <option value="picked_up" <?= $order['status'] == 'picked_up' ? 'selected' : '' ?>>Picked Up</option>
-                                        <option value="in_transit" <?= $order['status'] == 'in_transit' ? 'selected' : '' ?>>In Transit</option>
-                                        <option value="delivered" <?= $order['status'] == 'delivered' ? 'selected' : '' ?>>Delivered</option>
-                                        <option value="cancelled" <?= $order['status'] == 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-warning mt-1">Update Status</button>
-                                </form>
+                                <?php if ($order['status'] === 'delivered'): ?>
+                                    <span class="text-success">Delivery Completed</span>
+                                <?php else: ?>
+                                    <form method="POST">
+                                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                                        <select name="status" class="form-select">
+                                            <option value="">Select Status</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="assigned">Assigned</option>
+                                            <option value="delivered">Delivered</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary mt-1">Update</button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <li class="page-item <?= ($currentPage == 1) ? 'disabled' : '' ?>">
+                    <a class="page-link" href="?page=<?= $currentPage - 1 ?>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?= ($currentPage == $i) ? 'active' : '' ?>">
+                        <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                    </li>
+                <?php endfor; ?>
+                <li class="page-item <?= ($currentPage == $totalPages) ? 'disabled' : '' ?>">
+                    <a class="page-link" href="?page=<?= $currentPage + 1 ?>" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"></script>
 </body>
 </html>

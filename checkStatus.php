@@ -116,7 +116,7 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
             <a class="nav-link" href="past_order.php">Past Orders</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="logout.php">Sign Out</a>
+            <a class="nav-link" href="login.php">Sign Out</a>
         </li>
     </ul>
 </nav>

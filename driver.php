@@ -1,9 +1,9 @@
 <?php
 session_start();
 require_once 'Database/Database.php';
-require_once 'Classes/Driver.php';
+require_once 'Classes/Driver.php'; // Ensure this path is correct
 
-use DELIVERY\Driver\Driver;
+use DELIVERY\Classes\Driver; // Update the use statement to match the namespace
 
 // Check if the user is logged in as a driver
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'driver') {
@@ -18,15 +18,19 @@ $driver = new Driver($_SESSION['user_id']);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $order_id = $_POST['order_id'];
     $status = $_POST['status'];
-    
+
     // Update the order status via the Driver class
     $driver->updateOrderStatus($order_id, $status);
     
-    echo "<div class='alert alert-success'>Order status updated successfully!</div>";
+    // Debugging output after updating
+    echo "<div class='alert alert-success'>Order status updated to: $status for Order ID: $order_id</div>";
 }
 
 // Fetch the driver's assigned orders via the Driver class
 $orders = $driver->viewAssignedOrders();
+
+// Fetch past deliveries via the Driver class
+$pastDeliveries = $driver->viewPastDeliveries(); // New line to fetch past deliveries
 
 // Handle sign out
 if (isset($_POST['sign_out'])) {
@@ -117,6 +121,38 @@ if (isset($_POST['sign_out'])) {
                 <?php else: ?>
                     <tr>
                         <td colspan="6" class="text-center">No assigned orders at the moment.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="text-center mt-5">Past Deliveries</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Pickup Point</th>
+                    <th>Destination</th>
+                    <th>Client Email</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($pastDeliveries)): ?>
+                    <?php foreach ($pastDeliveries as $delivery): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($delivery['order_id']) ?></td>
+                            <td><?= htmlspecialchars($delivery['pickup_point']) ?></td>
+                            <td><?= htmlspecialchars($delivery['destination']) ?></td>
+                            <td><?= htmlspecialchars($delivery['client_email']) ?></td>
+                            <td><?= htmlspecialchars($delivery['status']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="text-center">No past deliveries found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

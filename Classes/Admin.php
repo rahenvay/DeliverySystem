@@ -1,15 +1,15 @@
 <?php
 namespace DELIVERY\Classes\Admin;
 
-require_once __DIR__ . '/../Database/Database.php'; // Corrected path
+require_once __DIR__ . '/../Database/Database.php';
 
 use DELIVERY\Database\Database;
 
 class Admin {
     private $conn;
 
-    public function __construct() {
-        $this->conn = new Database(); // Initialize the database connection
+    public function __construct(Database $database) { // Accept Database instance
+        $this->conn = $database; // Store the Database instance
     }
 
     // Fetch all orders from the 'orders' table
@@ -60,3 +60,4 @@ class Admin {
         return $stmt->execute();
     }
 }
+?>

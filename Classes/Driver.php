@@ -1,5 +1,5 @@
 <?php
-namespace DELIVERY\Driver;
+namespace DELIVERY\Classes;
 
 use DELIVERY\Database\Database;
 
@@ -24,6 +24,26 @@ class Driver {
         $stmt->bindParam(':driver_id', $this->driver_id);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    // Fetch all past deliveries for the driver
+    public function viewPastDeliveries() {
+        $query = "
+            SELECT o.order_id, o.pickup_point, o.destination, o.status, u.email AS client_email
+            FROM orders o
+            JOIN user u ON o.client_id = u.id
+            WHERE o.driver_id = :driver_id AND o.status = 'delivered'
+        ";
+        $stmt = $this->conn->getConnection()->prepare($query);
+        $stmt->bindParam(':driver_id', $this->driver_id);
+        $stmt->execute();
+
+        // Debugging output
+        if ($stmt->rowCount() > 0) {
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } else {
+            return []; // Return an empty array if no past deliveries found
+        }
     }
 
     // Update the status of a specific order

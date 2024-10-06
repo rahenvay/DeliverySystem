@@ -4,7 +4,6 @@ require_once 'Database/Database.php';
 require_once __DIR__ . '/Classes/Client.php';
 use DELIVERY\Client\Client;
 
-
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     header('Location: login.php');
     exit;
@@ -19,9 +18,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 $client_id = $_SESSION['user_id'];
 $client = new Client($client_id);
 
-// Fetch client's information and orders
+// Pagination setup
+$limit = 7;  // Number of orders per page
+$currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($currentPage - 1) * $limit;
+
+// Fetch total orders count and calculate total pages
+$totalOrders = $client->getTotalOrdersCount();
+$totalPages = ceil($totalOrders / $limit);
+
+// Fetch client information and orders for the current page
 $clientInfo = $client->getClientInfo();
-$orders = $client->viewOrders();
+$orders = $client->viewOrders($limit, $offset);
 ?>
 
 <!DOCTYPE html>
@@ -140,6 +148,27 @@ $orders = $client->viewOrders();
                 <?php endif; ?>
             </tbody>
         </table>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <li class="page-item <?= ($currentPage == 1) ? 'disabled' : '' ?>">
+                    <a class="page-link" href="?page=<?= $currentPage - 1 ?>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?= ($currentPage == $i) ? 'active' : '' ?>">
+                        <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                    </li>
+                <?php endfor; ?>
+                <li class="page-item <?= ($currentPage == $totalPages) ? 'disabled' : '' ?>">
+                    <a class="page-link" href="?page=<?= $currentPage + 1 ?>" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
 
