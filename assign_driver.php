@@ -9,15 +9,16 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     exit;
 }
 
+// Instantiate the Database object
 $conn = new Database();
 
 // Fetch all orders that need a driver assigned
 $orderQuery = "SELECT * FROM orders WHERE status = 'pending'";
-$orders = $conn->getStarted()->query($orderQuery)->fetchAll(PDO::FETCH_ASSOC);
+$orders = $conn->getConnection()->query($orderQuery)->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all drivers
 $driverQuery = "SELECT * FROM user WHERE permission = 'driver'";
-$drivers = $conn->getStarted()->query($driverQuery)->fetchAll(PDO::FETCH_ASSOC);
+$drivers = $conn->getConnection()->query($driverQuery)->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle form submission to assign driver
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -25,17 +26,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $order_id = $_POST['order_id'];
         $driver_id = $_POST['driver_id'];
 
-        // Assign the driver and update order status
-        $updateQuery = "UPDATE orders SET driver_id = :driver_id, status = 'assigned' WHERE order_id = :order_id";
-        $stmt = $conn->getStarted()->prepare($updateQuery);
-        $stmt->bindParam(':driver_id', $driver_id);
-        $stmt->bindParam(':order_id', $order_id);
-        $stmt->execute();
+        try {
+            // Assign the driver and update order status
+            $updateQuery = "UPDATE orders SET driver_id = :driver_id, status = 'assigned' WHERE order_id = :order_id";
+            $stmt = $conn->getConnection()->prepare($updateQuery);
+            $stmt->bindParam(':driver_id', $driver_id);
+            $stmt->bindParam(':order_id', $order_id);
+            $stmt->execute();
 
-        echo "<div class='alert alert-success'>Driver assigned to order successfully!</div>";
+            // Success message
+            echo "<div class='alert alert-success'>Driver assigned to order successfully!</div>";
+        } catch (PDOException $e) {
+            // Error handling
+            echo "<div class='alert alert-danger'>Error assigning driver: " . $e->getMessage() . "</div>";
+        }
+    } else {
+        echo "<div class='alert alert-danger'>Please select a driver and an order!</div>";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

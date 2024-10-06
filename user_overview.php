@@ -22,13 +22,13 @@ if ($filter === 'clients') {
     $query .= " WHERE permission = 'admin'";
 }
 
-$users = $conn->getStarted()->query($query)->fetchAll(PDO::FETCH_ASSOC);
+$users = $conn->getConnection()->query($query)->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle account deletion
 if (isset($_POST['delete_user_id'])) {
     $deleteUserId = $_POST['delete_user_id'];
     $deleteQuery = "DELETE FROM user WHERE id = :id";
-    $stmt = $conn->getStarted()->prepare($deleteQuery);
+    $stmt = $conn->getConnection()->prepare($deleteQuery);
     $stmt->bindParam(':id', $deleteUserId);
     $stmt->execute();
     

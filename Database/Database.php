@@ -10,18 +10,20 @@ class Database {
     private $user = 'delivery';
     private $pass = 'delivery';
     private $charset = 'utf8mb4';
-    private $pdo;
+    private $pdo = null; // Initialize as null
 
-    public function getStarted() {
+    // Method to get the PDO connection
+    public function getConnection() {
         if ($this->pdo === null) {
             try {
                 $dsn = "mysql:host=$this->host;dbname=$this->db;charset=$this->charset";
                 $this->pdo = new PDO($dsn, $this->user, $this->pass);
                 $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (PDOException $e) {
+                // Handle connection error
                 die("Error connecting to the database: " . $e->getMessage());
             }
         }
-        return $this->pdo;
+        return $this->pdo; // Return the PDO connection
     }
 }

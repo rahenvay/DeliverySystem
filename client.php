@@ -1,13 +1,14 @@
 <?php
 session_start();
 require_once 'Database/Database.php';
-use DELIVERY\Database\Database;
+require_once __DIR__ . '/Classes/Client.php';
+use DELIVERY\Client\Client;
+
 
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     header('Location: login.php');
     exit;
 }
-
 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_destroy();
@@ -15,23 +16,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
-$conn = new Database();
 $client_id = $_SESSION['user_id'];
+$client = new Client($client_id);
 
-// Fetch client's information
-$clientQuery = "SELECT fullname FROM user WHERE id = :client_id";
-$stmtClient = $conn->getStarted()->prepare($clientQuery);
-$stmtClient->bindParam(':client_id', $client_id);
-$stmtClient->execute();
-$clientInfo = $stmtClient->fetch(PDO::FETCH_ASSOC);
-
-// Fetch client's orders
-$query = "SELECT * FROM orders WHERE client_id = :client_id";
-$stmt = $conn->getStarted()->prepare($query);
-$stmt->bindParam(':client_id', $client_id);
-$stmt->execute();
-$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+// Fetch client's information and orders
+$clientInfo = $client->getClientInfo();
+$orders = $client->viewOrders();
 ?>
 
 <!DOCTYPE html>

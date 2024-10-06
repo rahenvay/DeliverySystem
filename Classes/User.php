@@ -1,42 +1,43 @@
 <?php
+namespace DELIVERY\Classes;
 
-namespace DELIVERY\User;
-require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
-abstract class User {
-    private $id;
+class User {
     private $email;
     private $password;
     private $fullname;
     private $permission;
+    private $db;
 
-    public function __construct($email, $password, $fullname, $permission){
+    public function __construct($email, $password, $fullname, $permission) {
         $this->email = $email;
         $this->password = $password;
         $this->fullname = $fullname;
         $this->permission = $permission;
+        
+        // Get the connection from Database class
+        $database = new Database();
+        $this->db = $database->getConnection();
     }
-public function createUser($email, $password, $fullname, $permission){
-    //connect
-    $conn = new Database();
-    
-    var_dump($conn->getStarted());
 
-    //prepare the request
-    $query = "INSERT INTO user (email, password, fullname, permission) VALUES (:email, :password, :fullname, :permission)";
-    $statement = $conn->getStarted()->prepare($query);
+    // Method to create a new user in the database
+    public function createUser() {
+        $sql = "INSERT INTO users (email, password, fullname, permission, created_at) VALUES (?, ?, ?, ?, NOW())";
+        $stmt = $this->db->prepare($sql);
 
-    //enryption
-    $encryption_password = password_hash($password, PASSWORD_BCRYPT );
+        if (!$stmt) {
+            return false;  // Handle preparation error
+        }
 
-    $statement->bindParam(":email", $email);
-    $statement->bindParam(":password", $encryption_password);
-    $statement->bindParam(":fullname", $fullname);
-    $statement->bindParam(":permission", $permission);
+        // Bind parameters and hash the password
+        $hashedPassword = password_hash($this->password, PASSWORD_BCRYPT);
+        $stmt->bind_param('ssss', $this->email, $hashedPassword, $this->fullname, $this->permission);
 
-    $statement->execute();
-}
-
-    abstract public function login($email, $password);
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

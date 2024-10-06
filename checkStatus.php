@@ -14,14 +14,14 @@ $client_id = $_SESSION['user_id'];
 
 // Fetch client's information
 $clientQuery = "SELECT fullname FROM user WHERE id = :client_id";
-$stmtClient = $conn->getStarted()->prepare($clientQuery);
+$stmtClient = $conn->getConnection()->prepare($clientQuery);
 $stmtClient->bindParam(':client_id', $client_id);
 $stmtClient->execute();
 $clientInfo = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
 // Fetch client's orders that are still in progress (excluding delivered/cancelled orders)
 $orderQuery = "SELECT * FROM orders WHERE client_id = :client_id AND status NOT IN ('delivered', 'cancelled')";
-$stmtOrders = $conn->getStarted()->prepare($orderQuery);
+$stmtOrders = $conn->getConnection()->prepare($orderQuery);
 $stmtOrders->bindParam(':client_id', $client_id);
 $stmtOrders->execute();
 $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);

@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $conn = new Database();
     $query = "SELECT * FROM user WHERE email = :email";
-    $stmt = $conn->getStarted()->prepare($query);
+    $stmt = $conn->getConnection()->prepare($query);
     $stmt->bindParam(':email', $email);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);

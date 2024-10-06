@@ -22,14 +22,14 @@ $client_id = $_SESSION['user_id'];
 
 // Fetch client info
 $clientQuery = "SELECT fullname FROM user WHERE id = :client_id";
-$stmtClient = $conn->getStarted()->prepare($clientQuery);
+$stmtClient = $conn->getConnection()->prepare($clientQuery);
 $stmtClient->bindParam(':client_id', $client_id);
 $stmtClient->execute();
 $clientInfo = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
 // Fetch all delivered orders for this client
 $query = "SELECT * FROM orders WHERE client_id = :client_id AND status = 'delivered'";
-$stmt = $conn->getStarted()->prepare($query);
+$stmt = $conn->getConnection()->prepare($query);
 $stmt->bindParam(':client_id', $client_id);
 $stmt->execute();
 $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);

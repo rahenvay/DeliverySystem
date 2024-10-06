@@ -1,11 +1,11 @@
 <?php
 session_start();
-require_once 'Database/Database.php';
-use DELIVERY\Database\Database;
+require_once __DIR__ . '/Classes/Order.php';  // Include the Order class
+use DELIVERY\Order\Order;
 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    session_unset(); 
-    session_destroy(); 
+    session_unset();
+    session_destroy();
     header('Location: login.php');
     exit;
 }
@@ -16,11 +16,12 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     exit;
 }
 
-$conn = new Database();
+require_once 'Database/Database.php';
+$conn = new \DELIVERY\Database\Database();
 
 // Fetch all clients
 $clientQuery = "SELECT * FROM user WHERE permission = 'client'";
-$clients = $conn->getStarted()->query($clientQuery)->fetchAll(PDO::FETCH_ASSOC);
+$clients = $conn->getConnection()->query($clientQuery)->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle form submission to create a new order
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -29,22 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $destination = $_POST['destination'];
     $price = $_POST['price'];
 
-    // Validate price to ensure it is not negative
-    if ($price < 0) {
-        echo "<div class='alert alert-danger'>Price cannot be negative!</div>";
-    } else {
-        // Insert the new order into the database
-        $insertOrderQuery = "INSERT INTO orders (client_id, pickup_point, destination, price, status) 
-                             VALUES (:client_id, :pickup_point, :destination, :price, 'pending')";
-        $stmt = $conn->getStarted()->prepare($insertOrderQuery);
-        $stmt->bindParam(':client_id', $client_id);
-        $stmt->bindParam(':pickup_point', $pickup_point);
-        $stmt->bindParam(':destination', $destination);
-        $stmt->bindParam(':price', $price);
-        $stmt->execute();
+    // Use the Order class to create a new order
+    $order = new Order($client_id, $pickup_point, $destination, $price);
+    $result = $order->createOrder(); // Create the order and get the result message
 
-        echo "<div class='alert alert-success'>Order created successfully!</div>";
-    }
+    echo "<div class='alert alert-" . (strpos($result, 'success') !== false ? 'success' : 'danger') . "'>$result</div>";
 }
 ?>
 

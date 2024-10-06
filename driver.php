@@ -1,7 +1,9 @@
 <?php
 session_start();
 require_once 'Database/Database.php';
-use DELIVERY\Database\Database;
+require_once 'Classes/Driver.php';
+
+use DELIVERY\Driver\Driver;
 
 // Check if the user is logged in as a driver
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'driver') {
@@ -9,44 +11,22 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'driver') {
     exit;
 }
 
-// Database connection
-$conn = new Database();
-$driver_id = $_SESSION['user_id'];
-
-// Fetch all current orders assigned to the logged-in driver (excluding delivered) and client information
-$query = "
-    SELECT o.order_id, o.pickup_point, o.destination, o.status, u.email AS client_email
-    FROM orders o
-    JOIN user u ON o.client_id = u.id
-    WHERE o.driver_id = :driver_id AND o.status != 'delivered'
-";
-$stmt = $conn->getStarted()->prepare($query);
-$stmt->bindParam(':driver_id', $driver_id);
-$stmt->execute();
-$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Initialize the driver object with the logged-in driver's ID
+$driver = new Driver($_SESSION['user_id']);
 
 // Handle status updates
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $order_id = $_POST['order_id'];
     $status = $_POST['status'];
-
-    // Update the order status
-    $updateQuery = "UPDATE orders SET status = :status WHERE order_id = :order_id";
-    $stmt = $conn->getStarted()->prepare($updateQuery);
-    $stmt->bindParam(':status', $status);
-    $stmt->bindParam(':order_id', $order_id);
-    $stmt->execute();
-
-    // If the order status is delivered, unassign the driver (set driver_id to NULL)
-    if ($status === 'delivered') {
-        $unassignDriverQuery = "UPDATE orders SET driver_id = NULL WHERE order_id = :order_id";
-        $stmtUnassign = $conn->getStarted()->prepare($unassignDriverQuery);
-        $stmtUnassign->bindParam(':order_id', $order_id);
-        $stmtUnassign->execute();
-    }
-
+    
+    // Update the order status via the Driver class
+    $driver->updateOrderStatus($order_id, $status);
+    
     echo "<div class='alert alert-success'>Order status updated successfully!</div>";
 }
+
+// Fetch the driver's assigned orders via the Driver class
+$orders = $driver->viewAssignedOrders();
 
 // Handle sign out
 if (isset($_POST['sign_out'])) {

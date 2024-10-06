@@ -1,25 +1,24 @@
 <?php
-require_once 'Classes/Admin.php';
-require_once 'Classes/User.php';
+require_once 'Classes/User.php';  // Include the User class
 
-use DELIVERY\Classes\Admin\Admin;
-use DELIVERY\Database\Database;
+use DELIVERY\Classes\User;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get form input values
     $email = $_POST['email'];
     $password = $_POST['password'];
     $fullname = $_POST['fullname'];
-    $permission = $_POST['permission'];  
+    $permission = $_POST['permission'];
 
-    // Create a new Admin object (you can handle different roles here, or adjust the logic)
-    $admin = new Admin($email, $password, $fullname, $permission);
+    // Create a new User object
+    $user = new User($email, $password, $fullname, $permission);
 
     // Create the user in the database
-    $admin->createUser($email, $password, $fullname, $permission);
-
-    // Show success message and login option
-    echo "<div class='alert alert-success'>User created successfully as a $permission. <a href='login.php'>Click here to login</a></div>";
+    if ($user->createUser()) {
+        echo "<div class='alert alert-success'>User created successfully as a $permission. <a href='login.php'>Click here to login</a></div>";
+    } else {
+        echo "<div class='alert alert-danger'>Error creating user. Please try again.</div>";
+    }
 }
 ?>
 
