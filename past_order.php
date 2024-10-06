@@ -3,7 +3,7 @@ session_start();
 require_once 'Database/Database.php';
 use DELIVERY\Database\Database;
 
-// This is to sign out bro, dont forget!
+// Sign out logic
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_unset(); 
     session_destroy(); 
@@ -11,7 +11,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
-// To Make Sure the user is logged in and is a client
+// Check if the user is logged in and is a client
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     header('Location: login.php');
     exit;
@@ -27,12 +27,29 @@ $stmtClient->bindParam(':client_id', $client_id);
 $stmtClient->execute();
 $clientInfo = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
-// Fetch all delivered orders for this client
-$query = "SELECT * FROM orders WHERE client_id = :client_id AND status = 'delivered'";
+// Pagination setup
+$ordersPerPage = 7; // Number of orders per page
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Get current page from URL
+$offset = ($page - 1) * $ordersPerPage; // Calculate the offset for SQL query
+
+// Fetch total number of delivered orders for this client
+$totalOrdersQuery = "SELECT COUNT(*) FROM orders WHERE client_id = :client_id AND status = 'delivered'";
+$stmtTotalOrders = $conn->getConnection()->prepare($totalOrdersQuery);
+$stmtTotalOrders->bindParam(':client_id', $client_id);
+$stmtTotalOrders->execute();
+$totalOrders = $stmtTotalOrders->fetchColumn();
+
+// Fetch delivered orders for this client with pagination
+$query = "SELECT * FROM orders WHERE client_id = :client_id AND status = 'delivered' LIMIT :limit OFFSET :offset";
 $stmt = $conn->getConnection()->prepare($query);
 $stmt->bindParam(':client_id', $client_id);
+$stmt->bindParam(':limit', $ordersPerPage, PDO::PARAM_INT);
+$stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Calculate total pages
+$totalPages = ceil($totalOrders / $ordersPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -86,6 +103,10 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         .table tbody tr:hover {
             background-color: #d3e3f3;
+        }
+        .pagination {
+            margin-top: 20px;
+            justify-content: center;
         }
         @media (max-width: 768px) {
             body {
@@ -154,6 +175,29 @@ $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endif; ?>
             </tbody>
         </table>
+
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination">
+                <?php if ($page > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $page - 1 ?>">Previous</a>
+                    </li>
+                <?php endif; ?>
+                
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?= ($i === $page) ? 'active' : '' ?>">
+                        <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                    </li>
+                <?php endfor; ?>
+
+                <?php if ($page < $totalPages): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?= $page + 1 ?>">Next</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
     </div>
 </div>
 
