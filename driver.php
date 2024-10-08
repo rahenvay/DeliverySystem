@@ -1,9 +1,9 @@
 <?php
 session_start();
 require_once 'Database/Database.php';
-require_once 'Classes/Driver.php'; // Ensure this path is correct
+require_once 'Classes/Driver.php'; // Update the path to match the correct file location
 
-use DELIVERY\Classes\Driver; // Update the use statement to match the namespace
+use DELIVERY\Driver\Driver; // Update the namespace to match the correct one
 
 // Check if the user is logged in as a driver
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'driver') {
@@ -39,6 +39,7 @@ if (isset($_POST['sign_out'])) {
     exit;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
