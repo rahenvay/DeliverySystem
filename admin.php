@@ -168,69 +168,110 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['driver_id']) && isset(
             </div>
         </div>
 
-        <!-- Orders Table -->
-        <h2>Manage Orders</h2>
-        <div class="table-responsive">
-            <table class="table table-hover table-bordered">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Client ID</th>
-                        <th>Pickup Point</th>
-                        <th>Destination</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Assign Driver</th>
-                        <th>Update Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($orders as $order): ?>
-                        <tr>
-                            <td><?= $order['order_id'] ?></td>
-                            <td><?= $order['client_id'] ?></td>
-                            <td><?= $order['pickup_point'] ?></td>
-                            <td><?= $order['destination'] ?></td>
-                            <td><?= $order['price'] ?></td>
-                            <td><?= $order['status'] ?></td>
-                            <td>
-                                <?php if ($order['status'] === 'delivered'): ?>
-                                    <span class="text-success">Delivery Completed</span>
-                                <?php else: ?>
-                                    <form method="POST">
-                                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                                        <select name="driver_id" class="form-select">
-                                            <option value="">Select Driver</option>
-                                            <?php foreach ($drivers as $driver): ?>
-                                                <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                        <button type="submit" class="btn btn-primary mt-1">Assign</button>
-                                    </form>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if ($order['status'] === 'delivered'): ?>
-                                    <span class="text-success">Delivery Completed</span>
-                                <?php else: ?>
-                                    <form method="POST">
-                                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
-                                        <select name="status" class="form-select">
-                                            <option value="">Select Status</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="assigned">Assigned</option>
-                                            <option value="delivered">Delivered</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-primary mt-1">Update</button>
-                                    </form>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
+    <!-- Search and Filter Form -->
+    <form method="GET" action="admin.php" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" name="client_name" class="form-control" placeholder="Search by Client Name" value="<?= isset($_GET['client_name']) ? $_GET['client_name'] : '' ?>">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">Filter by Status</option>
+                    <option value="pending" <?= isset($_GET['status']) && $_GET['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
+                    <option value="assigned" <?= isset($_GET['status']) && $_GET['status'] == 'assigned' ? 'selected' : '' ?>>Assigned</option>
+                    <option value="delivered" <?= isset($_GET['status']) && $_GET['status'] == 'delivered' ? 'selected' : '' ?>>Delivered</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="driver_id" class="form-select">
+                    <option value="">Filter by Driver</option>
+                    <?php foreach ($drivers as $driver): ?>
+                        <option value="<?= $driver['id'] ?>" <?= isset($_GET['driver_id']) && $_GET['driver_id'] == $driver['id'] ? 'selected' : '' ?>>
+                            <?= $driver['fullname'] ?>
+                        </option>
                     <?php endforeach; ?>
-                </tbody>
-            </table>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
         </div>
+    </form>
 
+    <!-- Fetch and Display Orders based on filters -->
+    <?php
+    $clientName = isset($_GET['client_name']) ? $_GET['client_name'] : '';
+    $status = isset($_GET['status']) ? $_GET['status'] : '';
+    $driverId = isset($_GET['driver_id']) ? $_GET['driver_id'] : '';
+
+    $orders = $admin->fetchFilteredOrders($clientName, $status, $driverId, $limit, $offset);
+    ?>
+
+<!-- Orders Table (unchanged) -->
+<div class="table-responsive">
+    <table class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Client ID</th>
+                <th>Pickup Point</th>
+                <th>Destination</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Assign Driver</th>
+                <th>Update Status</th>
+            </tr>
+        </thead>
+        <tbody>
+    <?php foreach ($orders as $order): ?>
+        <tr>
+            <td><?= $order['order_id'] ?></td>
+            <td><?= $order['client_id'] ?></td>
+            <td><?= $order['pickup_point'] ?></td>
+            <td><?= $order['destination'] ?></td>
+            <td><?= $order['price'] ?></td>
+            <td><?= $order['status'] ?></td>
+            
+            <!-- Disable Driver Assignment if delivered -->
+            <td>
+                <?php if ($order['status'] === 'delivered'): ?>
+                    <span class="text-success">Delivery Completed</span>
+                <?php else: ?>
+                    <form method="POST">
+                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                        <select name="driver_id" class="form-select">
+                            <option value="">Select Driver</option>
+                            <?php foreach ($drivers as $driver): ?>
+                                <option value="<?= $driver['id'] ?>"><?= $driver['fullname'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="submit" class="btn btn-primary mt-1">Assign</button>
+                    </form>
+                <?php endif; ?>
+            </td>
+            
+            <!-- Disable Status Update if delivered -->
+            <td>
+                <?php if ($order['status'] === 'delivered'): ?>
+                    <span class="text-success">Delivery Completed</span>
+                <?php else: ?>
+                    <form method="POST">
+                        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+                        <select name="status" class="form-select">
+                            <option value="">Select Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="delivered">Delivered</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary mt-1">Update</button>
+                    </form>
+                <?php endif; ?>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
+    </table>
+</div>
         <!-- Pagination -->
         <nav aria-label="Page navigation">
             <ul class="pagination">

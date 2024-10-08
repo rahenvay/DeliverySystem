@@ -1,5 +1,5 @@
 <?php
-namespace DELIVERY\Classes;
+namespace DELIVERY\Driver;
 
 use DELIVERY\Database\Database;
 

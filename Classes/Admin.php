@@ -59,5 +59,46 @@ class Admin {
         $stmt->bindParam(':order_id', $order_id);
         return $stmt->execute();
     }
+    // Fetch all orders with search and filter options
+    public function fetchFilteredOrders($clientName = '', $status = '', $driverId = '', $limit = 7, $offset = 0) {
+        $query = "SELECT * FROM orders WHERE 1=1"; // Basic query
+        
+        // Add search by client name
+        if (!empty($clientName)) {
+            $query .= " AND client_id IN (SELECT id FROM user WHERE fullname LIKE :clientName)";
+        }
+        
+        // Add filter by status
+        if (!empty($status)) {
+            $query .= " AND status = :status";
+        }
+        
+        // Add filter by driver
+        if (!empty($driverId)) {
+            $query .= " AND driver_id = :driverId";
+        }
+        
+        $query .= " LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->conn->getConnection()->prepare($query);
+        
+        // Bind parameters
+        if (!empty($clientName)) {
+            $stmt->bindValue(':clientName', '%' . $clientName . '%');
+        }
+        if (!empty($status)) {
+            $stmt->bindValue(':status', $status);
+        }
+        if (!empty($driverId)) {
+            $stmt->bindValue(':driverId', $driverId);
+        }
+        
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+    
 }
 ?>
