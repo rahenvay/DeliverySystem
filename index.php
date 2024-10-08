@@ -1,21 +1,38 @@
 <?php
+session_start(); // Start session for CSRF token
+
 require_once 'Classes/User.php';  // Include the User class
 
 use DELIVERY\Classes\User;
 
 $errors = [];
 
+// CSRF token generation
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get form input values
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $fullname = $_POST['fullname'];
-    $permission = $_POST['permission'];
+    // Check CSRF token
+    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $errors[] = "Invalid CSRF token. Please refresh the page and try again.";
+    }
+
+    // Sanitize input to prevent XSS attacks
+    $email = htmlspecialchars($_POST['email'], ENT_QUOTES, 'UTF-8');
+    $password = htmlspecialchars($_POST['password'], ENT_QUOTES, 'UTF-8');
+    $fullname = htmlspecialchars($_POST['fullname'], ENT_QUOTES, 'UTF-8');
+    $permission = htmlspecialchars($_POST['permission'], ENT_QUOTES, 'UTF-8');
 
     // Create a new User object
     $user = new User($email, $password, $fullname, $permission);
 
-    // If no errors from JS, proceed with user creation
+    // Validate the full name for numbers
+    if ($user->isValidFullName() === false) {
+        $errors[] = "Full name should not contain numbers. Please enter a valid name.";
+    }
+
+    // If no errors, create the user
     if (empty($errors)) {
         if ($user->createUser()) {
             echo "<div class='alert alert-success'>User created successfully as a $permission. <a href='login.php'>Click here to login</a></div>";
@@ -84,6 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST" id="createUserForm">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+        
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
             <input type="email" class="form-control" id="email" name="email" required>
