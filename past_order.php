@@ -40,13 +40,20 @@ $stmtTotalOrders->execute();
 $totalOrders = $stmtTotalOrders->fetchColumn();
 
 // Fetch delivered orders for this client with pagination
-$query = "SELECT * FROM orders WHERE client_id = :client_id AND status = 'delivered' LIMIT :limit OFFSET :offset";
+// Fetch delivered orders for this client with pagination
+$query = "
+    SELECT orders.*, user.fullname AS driver_name 
+    FROM orders 
+    LEFT JOIN user ON orders.driver_id = user.id 
+    WHERE orders.client_id = :client_id AND orders.status = 'delivered' 
+    LIMIT :limit OFFSET :offset";
 $stmt = $conn->getConnection()->prepare($query);
 $stmt->bindParam(':client_id', $client_id);
 $stmt->bindParam(':limit', $ordersPerPage, PDO::PARAM_INT);
 $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // Calculate total pages
 $totalPages = ceil($totalOrders / $ordersPerPage);
@@ -155,6 +162,7 @@ $totalPages = ceil($totalOrders / $ordersPerPage);
                     <th>Destination</th>
                     <th>Price</th>
                     <th>Status</th>
+                    <th>Driver Name</th> <!-- New column for Driver Name -->
                 </tr>
             </thead>
             <tbody>
@@ -166,15 +174,17 @@ $totalPages = ceil($totalOrders / $ordersPerPage);
                             <td><?= htmlspecialchars($order['destination']) ?></td>
                             <td><?= htmlspecialchars($order['price']) ?></td>
                             <td><?= htmlspecialchars($order['status']) ?></td>
+                            <td><?= htmlspecialchars($order['driver_name']) ?></td> <!-- Display Driver Name -->
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="text-center">No past orders found.</td>
+                        <td colspan="6" class="text-center">No past orders found.</td> <!-- Adjust colspan -->
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
+
 
         <!-- Pagination -->
         <nav>

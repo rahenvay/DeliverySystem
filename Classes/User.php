@@ -21,6 +21,11 @@ class User {
         $this->db = $database->getConnection();
     }
 
+    // Method to validate the full name (no numbers)
+    public function isValidFullName() {
+        return !preg_match('/\d/', $this->fullname); // Check if the name contains any digits
+    }
+
     // Method to create a new user in the database
     public function createUser() {
         $sql = "INSERT INTO users (email, password, fullname, permission, created_at) VALUES (?, ?, ?, ?, NOW())";

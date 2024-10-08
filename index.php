@@ -3,6 +3,8 @@ require_once 'Classes/User.php';  // Include the User class
 
 use DELIVERY\Classes\User;
 
+$errors = [];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get form input values
     $email = $_POST['email'];
@@ -13,11 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Create a new User object
     $user = new User($email, $password, $fullname, $permission);
 
-    // Create the user in the database
-    if ($user->createUser()) {
-        echo "<div class='alert alert-success'>User created successfully as a $permission. <a href='login.php'>Click here to login</a></div>";
-    } else {
-        echo "<div class='alert alert-danger'>Error creating user. Please try again.</div>";
+    // If no errors from JS, proceed with user creation
+    if (empty($errors)) {
+        if ($user->createUser()) {
+            echo "<div class='alert alert-success'>User created successfully as a $permission. <a href='login.php'>Click here to login</a></div>";
+        } else {
+            $errors[] = "Error creating user. Please try again.";
+        }
     }
 }
 ?>
@@ -58,6 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-primary:hover {
             background-color: #004494; 
         }
+        .error-message {
+            color: red;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -66,7 +74,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <img src="logo.png" alt="App Logo"> 
     </div>
     <h2 class="text-center">Create User</h2>
-    <form method="POST">
+
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-danger">
+            <?php foreach ($errors as $error): ?>
+                <p><?php echo htmlspecialchars($error); ?></p>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="POST" id="createUserForm">
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
             <input type="email" class="form-control" id="email" name="email" required>
@@ -78,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mb-3">
             <label for="fullname" class="form-label">Full Name</label>
             <input type="text" class="form-control" id="fullname" name="fullname" required>
+            <span class="error-message" id="fullnameError"></span>
         </div>
         <div class="mb-3">
             <label for="permission" class="form-label">Permission</label>
@@ -94,5 +112,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Already have an account? <a href="login.php" class="text-light">Login here</a>.
     </div>
 </div>
+
+<script>
+// JavaScript for full name validation
+document.getElementById('createUserForm').addEventListener('submit', function(event) {
+    var fullname = document.getElementById('fullname').value;
+    var fullnameError = document.getElementById('fullnameError');
+
+    // Check if full name contains numbers
+    var nameRegex = /^[A-Za-z\s]+$/;
+
+    if (!nameRegex.test(fullname)) {
+        event.preventDefault();  // Stop form from submitting
+        fullnameError.textContent = "Full name should not contain numbers.";
+    } else {
+        fullnameError.textContent = "";  // Clear the error message
+    }
+});
+</script>
 </body>
 </html>

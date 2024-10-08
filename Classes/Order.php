@@ -3,7 +3,9 @@
 namespace DELIVERY\Order;
 
 require_once 'Database/Database.php';
+
 use DELIVERY\Database\Database;
+use PDO; // Add this line to import the PDO class
 
 class Order {
     private $client_id;
@@ -54,6 +56,46 @@ class Order {
             }
         } else {
             return $validation; // Return validation errors
+        }
+    }
+
+    // Method to update the order status to 'delivered'
+    public function updateOrderStatus($order_id) {
+        // Fetch the driver's name based on the driver's ID from the orders table
+        $orderQuery = "SELECT driver_id FROM orders WHERE order_id = :order_id";
+        $stmtOrder = $this->conn->getConnection()->prepare($orderQuery);
+        $stmtOrder->bindParam(':order_id', $order_id);
+        $stmtOrder->execute();
+        $orderInfo = $stmtOrder->fetch(PDO::FETCH_ASSOC);
+
+        if ($orderInfo) {
+            $driver_id = $orderInfo['driver_id'];
+
+            // Now fetch the driver's name from the user table
+            $driverQuery = "SELECT fullname FROM user WHERE id = :driver_id AND permission = 'driver'";
+            $stmtDriver = $this->conn->getConnection()->prepare($driverQuery);
+            $stmtDriver->bindParam(':driver_id', $driver_id);
+            $stmtDriver->execute();
+            $driverInfo = $stmtDriver->fetch(PDO::FETCH_ASSOC);
+
+            if ($driverInfo) {
+                $driver_name = $driverInfo['fullname'];
+
+                // Update the order status to 'delivered'
+                $updateOrderQuery = "UPDATE orders SET status = 'delivered' WHERE order_id = :order_id";
+                $stmtUpdate = $this->conn->getConnection()->prepare($updateOrderQuery);
+                $stmtUpdate->bindParam(':order_id', $order_id);
+
+                if ($stmtUpdate->execute()) {
+                    return "Order status updated to delivered by " . htmlspecialchars($driver_name);
+                } else {
+                    return "Error updating order status.";
+                }
+            } else {
+                return "Error: Driver not found or permission not valid.";
+            }
+        } else {
+            return "Error: Order not found.";
         }
     }
 }
