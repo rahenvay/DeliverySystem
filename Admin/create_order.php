@@ -98,9 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <a class="nav-link active" href="create_order.php">Create Order</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="create_user.php">Create User</a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link" href="user_overview.php">User Overview</a>
         </li>
         <li class="nav-item">
