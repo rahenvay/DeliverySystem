@@ -19,11 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['permission'] = $user['permission'];
 
         if ($user['permission'] === 'admin') {
-            header('Location: admin.php');
+            header('Location: Admin/admin.php');
         } elseif ($user['permission'] === 'client') {
-            header('Location: client.php');
+            header('Location: Client/client.php');
         } elseif ($user['permission'] === 'driver') {
-            header('Location: driver.php');
+            header('Location: Driver/driver.php');
         }
     } else {
         echo "<div class='alert alert-danger'>Invalid email or password.</div>";

@@ -1,11 +1,11 @@
 <?php
 session_start();
-require_once 'Database/Database.php';
+require_once '../Database/Database.php';
 use DELIVERY\Database\Database;
 
 // Ensure the user is logged in and is a client
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 

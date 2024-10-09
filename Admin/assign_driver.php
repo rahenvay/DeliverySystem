@@ -1,11 +1,16 @@
 <?php
 session_start();
-require_once 'Database/Database.php';
+require_once '../Database/Database.php';
 use DELIVERY\Database\Database;
 
 // Ensure the user is logged in and is an admin
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
-    header('Location: login.php');
+    header('Location: ../login.php');
+    exit;
+}
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_destroy();
+    header('Location: ../login.php');
     exit;
 }
 

@@ -1,17 +1,17 @@
 <?php
 session_start();
-require_once 'Database/Database.php';
-require_once __DIR__ . '/Classes/Client.php';
+require_once '../Database/Database.php';
+require_once '../Classes/Client.php';
 use DELIVERY\Client\Client;
 
 if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_destroy();
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 

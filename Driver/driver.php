@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once 'Database/Database.php';
-require_once 'Classes/Driver.php'; // Update the path to match the correct file location
+require_once '../Database/Database.php';
+require_once '../Classes/Driver.php'; // Update the path to match the correct file location
 
 use DELIVERY\Driver\Driver; // Update the namespace to match the correct one
 
@@ -35,7 +35,7 @@ $pastDeliveries = $driver->viewPastDeliveries(); // New line to fetch past deliv
 // Handle sign out
 if (isset($_POST['sign_out'])) {
     session_destroy();
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }
 ?>

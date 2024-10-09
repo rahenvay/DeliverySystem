@@ -1,12 +1,12 @@
 <?php
 session_start();
-require_once __DIR__ . '/Classes/Order.php';  // Include the Order class
+require_once '../Classes/Order.php';  // Include the Order class
 use DELIVERY\Order\Order;
 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_unset();
     session_destroy();
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -16,7 +16,7 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'admin') {
     exit;
 }
 
-require_once 'Database/Database.php';
+require_once '../Database/Database.php';
 $conn = new \DELIVERY\Database\Database();
 
 // Fetch all clients

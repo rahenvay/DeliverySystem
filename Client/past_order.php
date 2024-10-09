@@ -1,13 +1,13 @@
 <?php
 session_start();
-require_once 'Database/Database.php';
+require_once '../Database/Database.php';
 use DELIVERY\Database\Database;
 
 // Sign out logic
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_unset(); 
     session_destroy(); 
-    header('Location: login.php'); 
+    header('Location: ../login.php'); 
     exit;
 }
 
