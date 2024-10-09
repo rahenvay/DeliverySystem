@@ -32,6 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Full name should not contain numbers. Please enter a valid name.";
     }
 
+    // Check if the user already exists
+    if ($user->userExists()) {
+        $errors[] = "A user with the same email or full name already exists. Please choose a different email or name.";
+    }
+
     // If no errors, create the user
     if (empty($errors)) {
         if ($user->createUser()) {
