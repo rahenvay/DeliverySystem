@@ -8,6 +8,11 @@ if (!isset($_SESSION['permission']) || $_SESSION['permission'] !== 'client') {
     header('Location: ../login.php');
     exit;
 }
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_destroy();
+    header('Location: ../login.php');
+    exit;
+}
 
 $conn = new Database();
 $client_id = $_SESSION['user_id'];
@@ -116,7 +121,7 @@ $orders = $stmtOrders->fetchAll(PDO::FETCH_ASSOC);
             <a class="nav-link" href="past_order.php">Past Orders</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="login.php">Sign Out</a>
+            <a class="nav-link" href="?action=logout">Sign Out</a>
         </li>
     </ul>
 </nav>
