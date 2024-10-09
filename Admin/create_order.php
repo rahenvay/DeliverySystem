@@ -6,7 +6,7 @@ use DELIVERY\Order\Order;
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_unset();
     session_destroy();
-    header('Location: ../login.php');
+    header('Location: login.php');
     exit;
 }
 
@@ -30,11 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $destination = $_POST['destination'];
     $price = $_POST['price'];
 
-    // Use the Order class to create a new order
-    $order = new Order($client_id, $pickup_point, $destination, $price);
-    $result = $order->createOrder(); // Create the order and get the result message
+    // Validate the price
+    if (!is_numeric($price) || $price < 0 || $price > 1000000) { // Change the upper limit as necessary
+        $error_message = "Please enter a reasonable price (0 - 1,000,000 Baht).";
+    } else {
+        // Use the Order class to create a new order
+        $order = new Order($client_id, $pickup_point, $destination, $price);
+        $result = $order->createOrder(); // Create the order and get the result message
 
-    echo "<div class='alert alert-" . (strpos($result, 'success') !== false ? 'success' : 'danger') . "'>$result</div>";
+        echo "<div class='alert alert-" . (strpos($result, 'success') !== false ? 'success' : 'danger') . "'>$result</div>";
+    }
 }
 ?>
 
@@ -105,6 +110,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <div class="content">
     <div class="container mt-5">
         <h2>Create New Order</h2>
+        <?php if (isset($error_message)): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
+        <?php endif; ?>
         <form method="POST" class="mt-4">
             <div class="row">
                 <div class="col-md-6">
