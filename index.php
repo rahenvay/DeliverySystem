@@ -2,6 +2,8 @@
 session_start(); // Start session for CSRF token
 
 require_once 'Classes/User.php';  // Include the User class
+require_once 'autoload.php';
+
 
 use DELIVERY\Classes\User;
 
