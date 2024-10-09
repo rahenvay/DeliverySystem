@@ -40,7 +40,6 @@ $stmtTotalOrders->execute();
 $totalOrders = $stmtTotalOrders->fetchColumn();
 
 // Fetch delivered orders for this client with pagination
-// Fetch delivered orders for this client with pagination
 $query = "
     SELECT orders.*, user.fullname AS driver_name 
     FROM orders 
@@ -53,7 +52,6 @@ $stmt->bindParam(':limit', $ordersPerPage, PDO::PARAM_INT);
 $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $pastOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 
 // Calculate total pages
 $totalPages = ceil($totalOrders / $ordersPerPage);
@@ -134,8 +132,8 @@ $totalPages = ceil($totalOrders / $ordersPerPage);
 <nav id="sidebar" class="d-flex flex-column col-md-3 col-lg-2 p-3">
     <h4 class="text-white text-center">Client Dashboard</h4>
     <div class="client-info">
-        <p><strong>Name:</strong> <?= htmlspecialchars($clientInfo['fullname']) ?></p>
-        <p><strong>ID:</strong> <?= htmlspecialchars($client_id) ?></p>
+        <p><strong>Name:</strong> <?= isset($clientInfo['fullname']) ? htmlspecialchars($clientInfo['fullname']) : 'N/A' ?></p>
+        <p><strong>ID:</strong> <?= isset($client_id) ? htmlspecialchars($client_id) : 'N/A' ?></p>
     </div>
     <ul class="nav flex-column">
         <li class="nav-item">
@@ -169,12 +167,12 @@ $totalPages = ceil($totalOrders / $ordersPerPage);
                 <?php if (count($pastOrders) > 0): ?>
                     <?php foreach ($pastOrders as $order): ?>
                         <tr>
-                            <td><?= htmlspecialchars($order['order_id']) ?></td>
-                            <td><?= htmlspecialchars($order['pickup_point']) ?></td>
-                            <td><?= htmlspecialchars($order['destination']) ?></td>
-                            <td><?= htmlspecialchars($order['price']) ?></td>
-                            <td><?= htmlspecialchars($order['status']) ?></td>
-                            <td><?= htmlspecialchars($order['driver_name']) ?></td> <!-- Display Driver Name -->
+                            <td><?= isset($order['order_id']) ? htmlspecialchars($order['order_id']) : 'N/A' ?></td>
+                            <td><?= isset($order['pickup_point']) ? htmlspecialchars($order['pickup_point']) : 'N/A' ?></td>
+                            <td><?= isset($order['destination']) ? htmlspecialchars($order['destination']) : 'N/A' ?></td>
+                            <td><?= isset($order['price']) ? htmlspecialchars($order['price']) : 'N/A' ?></td>
+                            <td><?= isset($order['status']) ? htmlspecialchars($order['status']) : 'N/A' ?></td>
+                            <td><?= isset($order['driver_name']) ? htmlspecialchars($order['driver_name']) : 'N/A' ?></td> <!-- Display Driver Name -->
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -184,7 +182,6 @@ $totalPages = ceil($totalOrders / $ordersPerPage);
                 <?php endif; ?>
             </tbody>
         </table>
-
 
         <!-- Pagination -->
         <nav>
