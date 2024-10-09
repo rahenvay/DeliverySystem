@@ -115,6 +115,9 @@ if (isset($_POST['delete_user_id'])) {
             <a class="nav-link" href="create_order.php">Create Order</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" href="create_user.php">Create User</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link active" href="user_overview.php">User Overview</a>
         </li>
         <li class="nav-item">
